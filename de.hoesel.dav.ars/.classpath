@@ -4,14 +4,12 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="/Kernsoftware-Basissystem/distributionspakete/de.bsvrz.dav.daf/de.bsvrz.dav.daf-runtime.jar" sourcepath="/Kernsoftware-Basissystem/distributionspakete/de.bsvrz.dav.daf/de.bsvrz.dav.daf-src.zip"/>
 	<classpathentry kind="lib" path="/Kernsoftware-Basissystem/distributionspakete/de.bsvrz.sys.funclib.application/de.bsvrz.sys.funclib.application-runtime.jar"/>
-	<classpathentry kind="lib" path="/Kernsoftware-Basissystem/distributionspakete/de.bsvrz.sys.funclib.bitctrl.modell/de.bsvrz.sys.funclib.bitctrl.modell-runtime.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/EclipseLink 2.4.1 - Juno">
 		<attributes>
 			<attribute name="owner.project.facets" value="#system#;jpt.jpa"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/derby.jar"/>
-	<classpathentry kind="lib" path="/Kernsoftware-Basissystem/distributionspakete/de.bsvrz.sys.funclib.bitctrl.modell.util/de.bsvrz.sys.funclib.bitctrl.modell.util-runtime.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.25-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

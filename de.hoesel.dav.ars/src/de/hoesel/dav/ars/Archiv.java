@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
@@ -15,8 +16,6 @@ import org.eclipse.persistence.config.PersistenceUnitProperties;
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.sys.funclib.application.StandardApplication;
 import de.bsvrz.sys.funclib.application.StandardApplicationRunner;
-import de.bsvrz.sys.funclib.bitctrl.modell.DefaultObjektFactory;
-import de.bsvrz.sys.funclib.bitctrl.modell.ObjektFactory;
 import de.bsvrz.sys.funclib.commandLineArgs.ArgumentList;
 
 /**
@@ -60,10 +59,7 @@ public class Archiv implements StandardApplication {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void initialize(final ClientDavInterface connection)
 			throws Exception {
-		ObjektFactory objF = DefaultObjektFactory.getInstanz();
-
-		objF.setDav(connection);
-
+		
 		Map properties = new HashMap();
 		properties.put(PersistenceUnitProperties.JDBC_DRIVER, jdbcDriver);
 		properties.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);
@@ -74,8 +70,10 @@ public class Archiv implements StandardApplication {
 		properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE,
 				PersistenceUnitProperties.DDL_DATABASE_GENERATION);
 
-		new Archivator(Persistence.createEntityManagerFactory(
-				Archivator.PERSISTENCE_UNIT_NAME, properties));
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory(
+				Archivator.PERSISTENCE_UNIT_NAME, properties);
+		
+		new Archivator(entityManagerFactory,connection);
 
 	}
 

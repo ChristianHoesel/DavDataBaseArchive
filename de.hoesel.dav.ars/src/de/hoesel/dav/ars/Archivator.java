@@ -18,8 +18,6 @@ import de.bsvrz.dav.daf.main.config.Aspect;
 import de.bsvrz.dav.daf.main.config.AttributeGroup;
 import de.bsvrz.dav.daf.main.config.SystemObject;
 import de.bsvrz.dav.daf.main.config.SystemObjectType;
-import de.bsvrz.sys.funclib.bitctrl.modell.DefaultObjektFactory;
-import de.bsvrz.sys.funclib.bitctrl.modell.ObjektFactory;
 import de.hoesel.dav.ars.jpa.DefaultArchivData;
 import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq;
 
@@ -28,9 +26,9 @@ public class Archivator implements ClientReceiverInterface {
 	public static final String PERSISTENCE_UNIT_NAME = "de.hoesel.dav.ars";
 	private final EntityManagerFactory factory;
 
-	private final ObjektFactory objF;
 
 	private Executor threadPool = Executors.newCachedThreadPool();
+	private ClientDavInterface connection;
 
 	private class DBThread implements Runnable {
 
@@ -68,7 +66,7 @@ public class Archivator implements ClientReceiverInterface {
 	private Object convert2DB(final ResultData rd) {
 		DataDescription desc = rd.getDataDescription();
 		Object result;
-		if(desc.getAttributeGroup().getPid().equals(de.bsvrz.sys.funclib.bitctrl.modell.tmverkehrglobal.onlinedaten.OdVerkehrsDatenKurzZeitMq.PID)){
+		if(desc.getAttributeGroup().getPid().equals("atg.verkehrsDatenKurzZeitMq")){
 			result = new OdVerkehrsDatenKurzZeitMq(rd);
 		}else{
 			result =new DefaultArchivData(rd);
@@ -76,21 +74,20 @@ public class Archivator implements ClientReceiverInterface {
 		return result;
 	}
 
-	public Archivator() {
+	public Archivator(ClientDavInterface connection) {
 		this(Persistence
-				.createEntityManagerFactory(PERSISTENCE_UNIT_NAME));
+				.createEntityManagerFactory(PERSISTENCE_UNIT_NAME),connection);
 	}
 	
-	public Archivator(EntityManagerFactory emFactory){
+	public Archivator(EntityManagerFactory emFactory, ClientDavInterface connection){
 		factory = emFactory;
-		objF = DefaultObjektFactory.getInstanz();
+		this.connection = connection;
 		subscribeDavData();
 	}
 
 	private void subscribeDavData() {
-		ClientDavInterface dav = objF.getDav();
 
-		for (SystemObject t : dav.getDataModel().getTypeTypeObject()
+		for (SystemObject t : connection.getDataModel().getTypeTypeObject()
 				.getObjects()) {
 
 			SystemObjectType type = ((SystemObjectType) t);
@@ -98,7 +95,7 @@ public class Archivator implements ClientReceiverInterface {
 				for (Aspect asp : atg.getAspects()) {
 					DataDescription desc = new DataDescription(atg, asp);
 					try {
-						dav.subscribeReceiver(this, type.getElements(), desc,
+						connection.subscribeReceiver(this, type.getElements(), desc,
 								ReceiveOptions.normal(),
 								ReceiverRole.receiver());
 						// System.out.println("Anmeldung: " + desc);
