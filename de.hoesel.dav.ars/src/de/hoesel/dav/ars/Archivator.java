@@ -26,7 +26,7 @@ import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq;
 public class Archivator implements ClientReceiverInterface {
 
 	public static final String PERSISTENCE_UNIT_NAME = "de.hoesel.dav.ars";
-	private static EntityManagerFactory factory;
+	private final EntityManagerFactory factory;
 
 	private final ObjektFactory objF;
 
@@ -39,8 +39,6 @@ public class Archivator implements ClientReceiverInterface {
 
 		public DBThread(ResultData[] resultData) {
 			this.resultData = resultData;
-			factory = Persistence
-					.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
 			em = factory.createEntityManager();
 		}
 
@@ -79,6 +77,12 @@ public class Archivator implements ClientReceiverInterface {
 	}
 
 	public Archivator() {
+		this(Persistence
+				.createEntityManagerFactory(PERSISTENCE_UNIT_NAME));
+	}
+	
+	public Archivator(EntityManagerFactory emFactory){
+		factory = emFactory;
 		objF = DefaultObjektFactory.getInstanz();
 		subscribeDavData();
 	}

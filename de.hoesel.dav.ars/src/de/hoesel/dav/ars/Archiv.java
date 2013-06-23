@@ -3,8 +3,14 @@
  */
 package de.hoesel.dav.ars;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.persistence.Persistence;
+
+import org.eclipse.persistence.config.PersistenceUnitProperties;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.sys.funclib.application.StandardApplication;
@@ -18,6 +24,11 @@ import de.bsvrz.sys.funclib.commandLineArgs.ArgumentList;
  * 
  */
 public class Archiv implements StandardApplication {
+
+	private String jdbcDriver;
+	private String jdbcUrl;
+	private String jdbcUser;
+	private String jdbcPassword;
 
 	/**
 	 * @param args
@@ -36,43 +47,49 @@ public class Archiv implements StandardApplication {
 		try {
 			Object lock = new Object();
 			synchronized (lock) {
-				lock.wait();	
+				lock.wait();
 			}
-			
+
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void initialize(final ClientDavInterface connection)
 			throws Exception {
 		ObjektFactory objF = DefaultObjektFactory.getInstanz();
 
 		objF.setDav(connection);
-		
-		new Archivator();
-		
-		
-		
-		
+
+		Map properties = new HashMap();
+		properties.put(PersistenceUnitProperties.JDBC_DRIVER, jdbcDriver);
+		properties.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);
+		properties.put(PersistenceUnitProperties.JDBC_USER, jdbcUser);
+		properties.put(PersistenceUnitProperties.JDBC_PASSWORD, jdbcPassword);
+		properties.put(PersistenceUnitProperties.DDL_GENERATION,
+				PersistenceUnitProperties.DROP_AND_CREATE);
+		properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE,
+				PersistenceUnitProperties.DDL_DATABASE_GENERATION);
+
+		new Archivator(Persistence.createEntityManagerFactory(
+				Archivator.PERSISTENCE_UNIT_NAME, properties));
+
 	}
 
-	/**
-	 * Zusätzliche Kommandozeilenargumente sind:
-	 * <ul>
-	 * <li><code>-kb</code> die kommagetrennte Liste der PIDs von zu
-	 * konvertierenden Konfigurationsbereichen.</li>
-	 * <li><code>-out</code> das Zielverzeichnis in dem generierten Java-Quellen
-	 * abgelegt werden sollen.</li>
-	 * <li><code></code></li>
-	 * </ul>
-	 * 
-	 * {@inheritDoc}
-	 */
 	public void parseArguments(final ArgumentList argumentList)
 			throws Exception {
-		
+		jdbcDriver = argumentList.fetchArgument(
+				PersistenceUnitProperties.JDBC_DRIVER
+						+ "=org.apache.derby.jdbc.EmbeddedDriver").asString();
+		jdbcUrl = argumentList.fetchArgument(
+				PersistenceUnitProperties.JDBC_URL
+						+ "=jdbc:derby:davArchiv;create=true").asString();
+		jdbcUser = argumentList.fetchArgument(
+				PersistenceUnitProperties.JDBC_USER + "=test").asString();
+		jdbcPassword = argumentList.fetchArgument(
+				PersistenceUnitProperties.JDBC_PASSWORD + "=").asString();
 	}
 }

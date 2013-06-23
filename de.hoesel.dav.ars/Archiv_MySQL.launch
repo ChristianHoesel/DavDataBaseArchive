@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/de.hoesel.dav.ars/src/de/hoesel/dav/ars/Archiv.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="de.hoesel.dav.ars.Archiv"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-benutzer=Tester -authentifizierung=passwd -datenverteiler=localhost:8083 javax.persistence.jdbc.driver=com.mysql.jdbc.Driver javax.persistence.jdbc.url=jdbc:mysql://localhost:3306/davArchiv javax.persistence.jdbc.user=root"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="de.hoesel.dav.ars"/>
+</launchConfiguration>
