@@ -1,0 +1,68 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.hoesel.dav.ars</groupId>
+	<artifactId>de.hoesel.dav.ars</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Datenverteiler Datenbank Archiv</name>
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>src</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source />
+					<target />
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.eclipse.persistence</groupId>
+				<artifactId>javax.persistence</artifactId>
+				<version>2.1.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.persistence</groupId>
+				<artifactId>eclipselink</artifactId>
+				<version>2.5.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>javax.persistence</artifactId>
+			</dependency>
+		<dependency>
+			<groupId>de.bsvrz.dav</groupId>
+			<artifactId>de.bsvrz.dav.daf</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>de.bsvrz.sys.funclib</groupId>
+			<artifactId>de.bsvrz.sys.funclib.application</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>de.bsvrz.sys.funclib</groupId>
+			<artifactId>de.bsvrz.sys.funclib.dataSerializer</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>eclipselink</artifactId>
+		</dependency>
+	</dependencies>
+</project>
