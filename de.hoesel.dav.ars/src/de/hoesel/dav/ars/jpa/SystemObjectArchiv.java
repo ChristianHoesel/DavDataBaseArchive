@@ -3,17 +3,17 @@ package de.hoesel.dav.ars.jpa;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import de.bsvrz.dav.daf.main.config.SystemObject;
 
-@Embeddable
+@Entity
 public class SystemObjectArchiv implements Serializable {
 
 	private String pid;
 
-//	@Id
+	@Id
 	private Long id;
 
 	private String name;

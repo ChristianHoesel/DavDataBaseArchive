@@ -12,6 +12,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
+import org.eclipse.persistence.config.SessionCustomizer;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.sys.funclib.application.StandardApplication;
@@ -74,7 +75,7 @@ public class Archiv implements StandardApplication {
 				Archivator.PERSISTENCE_UNIT_NAME, properties);
 		
 		new Archivator(entityManagerFactory,connection);
-
+		
 	}
 
 	public void parseArguments(final ArgumentList argumentList)

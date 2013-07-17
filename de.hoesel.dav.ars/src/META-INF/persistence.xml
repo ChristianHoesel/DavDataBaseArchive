@@ -6,6 +6,9 @@
 		<class>de.hoesel.dav.ars.jpa.SystemObjectArchiv</class>
 		<class>de.hoesel.dav.ars.jpa.DefaultArchivData</class>
 		<class>de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq</class>
+		<properties>
+			<property name="eclipselink.session.customizer" value="de.hoesel.dav.ars.monitor.DatenverteilerArchivPerformanceMonitor"/>
+		</properties>
 		<!--
 	<properties>
 	 

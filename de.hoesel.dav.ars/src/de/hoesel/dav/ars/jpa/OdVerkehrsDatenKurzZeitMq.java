@@ -1,10 +1,8 @@
 package de.hoesel.dav.ars.jpa;
 
-
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,16 +13,24 @@ import javax.persistence.TemporalType;
 import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.ResultData;
 
+/**
+ * Implementierung des Archivdatensatzes der Attributgruppe
+ * VerkehrsDatenKurzZeitMq (atg.verkehrsDatenKurzZeitMq) für
+ * MessQuerschnittAllgemein (typ.messQuerschnittAllgemein)
+ * 
+ * @author Christian
+ * 
+ */
 @Entity
-public class OdVerkehrsDatenKurzZeitMq implements Serializable  {
+public class OdVerkehrsDatenKurzZeitMq implements Serializable,
+		DatenverteilerArchivDatensatz {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long db_id;
 
-	@Embedded
 	private SystemObjectArchiv systemObject;
-	
+
 	private String aspect;
 
 	@Temporal(TemporalType.TIMESTAMP)
@@ -76,23 +82,40 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable  {
 
 		Data daten = rd.getData();
 		if (daten != null) {
-			setqKfz(daten.getItem("QKfz").getItem("Wert").asUnscaledValue().intValue());
-			setvKfz(daten.getItem("VKfz").getItem("Wert").asUnscaledValue().intValue());
-			setqLkw(daten.getItem("QLkw").getItem("Wert").asUnscaledValue().intValue());
-			setvLkw(daten.getItem("VLkw").getItem("Wert").asUnscaledValue().intValue());
-			setqPkw(daten.getItem("QPkw").getItem("Wert").asUnscaledValue().intValue());
-			setvPkw(daten.getItem("VPkw").getItem("Wert").asUnscaledValue().intValue());
-			setB(daten.getItem("B").getItem("Wert").asUnscaledValue().floatValue());
-			setbMax(daten.getItem("BMax").getItem("Wert").asUnscaledValue().floatValue());
-			setsKfz(daten.getItem("SKfz").getItem("Wert").asUnscaledValue().intValue());
-			setVgKfz(daten.getItem("VgKfz").getItem("Wert").asUnscaledValue().intValue());
-			setaLkw(daten.getItem("ALkw").getItem("Wert").asUnscaledValue().floatValue());
-			setkKfz(daten.getItem("KKfz").getItem("Wert").asUnscaledValue().intValue());
-			setkLkw(daten.getItem("KLkw").getItem("Wert").asUnscaledValue().intValue());
-			setkPkw(daten.getItem("KPkw").getItem("Wert").asUnscaledValue().intValue());
-			setqB(daten.getItem("QB").getItem("Wert").asUnscaledValue().floatValue());
-			setkB(daten.getItem("KB").getItem("Wert").asUnscaledValue().floatValue());
-			setvDelta(daten.getItem("VDelta").getItem("Wert").asUnscaledValue().floatValue());
+			setqKfz(daten.getItem("QKfz").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setvKfz(daten.getItem("VKfz").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setqLkw(daten.getItem("QLkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setvLkw(daten.getItem("VLkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setqPkw(daten.getItem("QPkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setvPkw(daten.getItem("VPkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setB(daten.getItem("B").getItem("Wert").asUnscaledValue()
+					.floatValue());
+			setbMax(daten.getItem("BMax").getItem("Wert").asUnscaledValue()
+					.floatValue());
+			setsKfz(daten.getItem("SKfz").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setVgKfz(daten.getItem("VgKfz").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setaLkw(daten.getItem("ALkw").getItem("Wert").asUnscaledValue()
+					.floatValue());
+			setkKfz(daten.getItem("KKfz").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setkLkw(daten.getItem("KLkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setkPkw(daten.getItem("KPkw").getItem("Wert").asUnscaledValue()
+					.intValue());
+			setqB(daten.getItem("QB").getItem("Wert").asUnscaledValue()
+					.floatValue());
+			setkB(daten.getItem("KB").getItem("Wert").asUnscaledValue()
+					.floatValue());
+			setvDelta(daten.getItem("VDelta").getItem("Wert").asUnscaledValue()
+					.floatValue());
 		}
 
 	}
