@@ -1,5 +1,18 @@
 /**
- * 
+ * Copyright (C) 2013  Christian Hösel
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see [http://www.gnu.org/licenses/].
  */
 package de.hoesel.dav.ars;
 
@@ -59,7 +72,7 @@ public class Archiv implements StandardApplication {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void initialize(final ClientDavInterface connection)
 			throws Exception {
-		
+
 		Map properties = new HashMap();
 		properties.put(PersistenceUnitProperties.JDBC_DRIVER, jdbcDriver);
 		properties.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);
@@ -70,11 +83,12 @@ public class Archiv implements StandardApplication {
 		properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE,
 				PersistenceUnitProperties.DDL_DATABASE_GENERATION);
 
-		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory(
-				Archivator.PERSISTENCE_UNIT_NAME, properties);
-		
-		new Archivator(entityManagerFactory,connection);
-		
+		EntityManagerFactory entityManagerFactory = Persistence
+				.createEntityManagerFactory(Archivator.PERSISTENCE_UNIT_NAME,
+						properties);
+
+		new Archivator(entityManagerFactory, connection);
+
 	}
 
 	public void parseArguments(final ArgumentList argumentList)
