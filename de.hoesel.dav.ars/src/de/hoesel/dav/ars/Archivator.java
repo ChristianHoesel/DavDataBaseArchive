@@ -1,8 +1,9 @@
 package de.hoesel.dav.ars;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -10,14 +11,18 @@ import javax.persistence.Persistence;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.dav.daf.main.ClientReceiverInterface;
+import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.DataDescription;
 import de.bsvrz.dav.daf.main.ReceiveOptions;
 import de.bsvrz.dav.daf.main.ReceiverRole;
 import de.bsvrz.dav.daf.main.ResultData;
 import de.bsvrz.dav.daf.main.config.Aspect;
 import de.bsvrz.dav.daf.main.config.AttributeGroup;
-import de.bsvrz.dav.daf.main.config.SystemObject;
-import de.bsvrz.dav.daf.main.config.SystemObjectType;
+import de.bsvrz.sys.funclib.dataIdentificationSettings.DataIdentification;
+import de.bsvrz.sys.funclib.dataIdentificationSettings.EndOfSettingsListener;
+import de.bsvrz.sys.funclib.dataIdentificationSettings.SettingsManager;
+import de.bsvrz.sys.funclib.dataIdentificationSettings.UpdateListener;
+import de.bsvrz.sys.funclib.debug.Debug;
 import de.hoesel.dav.ars.jpa.DatenverteilerArchivDatensatz;
 import de.hoesel.dav.ars.jpa.DefaultArchivData;
 import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq;
@@ -40,6 +45,77 @@ public class Archivator implements ClientReceiverInterface {
 	private Executor threadPool = Executors.newSingleThreadExecutor();// newCachedThreadPool();
 	private ClientDavInterface connection;
 
+	private static final Debug logger = Debug.getLogger();
+
+	/**
+	 * Reagiert bei Änderung der Archivparameter und organisiert die An- und
+	 * Abmeldungen für zu archivierende Datensätze.
+	 * 
+	 * @author Christian
+	 * 
+	 */
+	private final class SettingsManagerUpdateListener implements
+			UpdateListener, EndOfSettingsListener {
+
+		private List<DataIdentification> neueAnmeldungen = new ArrayList<DataIdentification>();
+		private List<DataIdentification> neueAbmeldungen = new ArrayList<DataIdentification>();
+
+		@Override
+		public synchronized void update(DataIdentification dataIdentification,
+				Data oldSettings, Data newSettings) {
+			if (oldSettings != null && newSettings == null) {
+				archivParameterEntfernt(dataIdentification);
+			} else {
+				neueArchivParameter(dataIdentification, newSettings);
+			}
+		}
+
+		private void archivParameterEntfernt(
+				DataIdentification dataIdentification) {
+			neueAbmeldungen.add(dataIdentification);
+		}
+
+		private void neueArchivParameter(DataIdentification dataIdentification,
+				Data newSettings) {
+			boolean archivieren = newSettings.getUnscaledValue("Archivieren")
+					.intValue() > 0;
+
+			if (archivieren) {
+				neueAnmeldungen.add(dataIdentification);
+			} else {
+				neueAbmeldungen.add(dataIdentification);
+			}
+		}
+
+		@Override
+		public synchronized void inform() {
+			logger.info("Neue Archivparameter eingelesen - Beginne mit Anmeldung/Ummeldung für Archivparameter. Es werden "
+					+ neueAnmeldungen.size()
+					+ " Anmeldungen und "
+					+ neueAbmeldungen.size() + " Abmeldungen vorgenommen.");
+			long start = System.currentTimeMillis();
+
+			for (DataIdentification id : neueAbmeldungen) {
+				connection.unsubscribeReceiver(Archivator.this, id.getObject(),
+						id.getDataDescription());
+			}
+			neueAbmeldungen.clear();
+
+			for (DataIdentification id : neueAnmeldungen) {
+				try {
+					connection.subscribeReceiver(Archivator.this,
+							id.getObject(), id.getDataDescription(),
+							ReceiveOptions.delayed(), ReceiverRole.receiver());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			neueAnmeldungen.clear();
+			logger.info("An- und Abmeldung für Archivdatensaetze abgeschlossen - "
+					+ (System.currentTimeMillis() - start) + " ms");
+		}
+	}
+
 	private class DBThread implements Runnable {
 
 		private final ResultData[] resultData;
@@ -53,7 +129,6 @@ public class Archivator implements ClientReceiverInterface {
 		@Override
 		public void run() {
 			try {
-				long start = System.currentTimeMillis();
 				em.getTransaction().begin();
 				for (ResultData rd : resultData) {
 
@@ -68,11 +143,8 @@ public class Archivator implements ClientReceiverInterface {
 					em.merge(neuerDatensatz);
 				}
 				em.getTransaction().commit();
-//				Logger.getLogger(getClass().getName()).info(
-//						resultData.length + " Datensaetze gespeichert. "
-//								+ (System.currentTimeMillis() - start) + "ms");
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				logger.error("Archivdaten konnten nicht gespeichert werden.", ex);
 			} finally {
 				em.close();
 			}
@@ -105,26 +177,21 @@ public class Archivator implements ClientReceiverInterface {
 
 	private void subscribeDavData() {
 
-		for (SystemObject t : connection.getDataModel().getTypeTypeObject()
-				.getObjects()) {
+		AttributeGroup atgArchiv = connection.getDataModel().getAttributeGroup(
+				"atg.archiv");
+		Aspect aspParameterSoll = connection.getDataModel().getAspect(
+				"asp.parameterSoll");
+		DataDescription desc = new DataDescription(atgArchiv, aspParameterSoll);
+		DataIdentification dataId = new DataIdentification(
+				connection.getLocalConfigurationAuthority(), desc);
+		SettingsManager settingsManager = new SettingsManager(connection,
+				dataId);
 
-			SystemObjectType type = ((SystemObjectType) t);
-			for (AttributeGroup atg : type.getAttributeGroups()) {
-				for (Aspect asp : atg.getAspects()) {
-					DataDescription desc = new DataDescription(atg, asp);
-					try {
-						connection.subscribeReceiver(this, type.getElements(),
-								desc, ReceiveOptions.normal(),
-								ReceiverRole.receiver());
-						// System.out.println("Anmeldung: " + desc);
-					} catch (Exception e) {
-						// e.printStackTrace();
-					}
-
-				}
-			}
-		}
-		Logger.getLogger(getClass().getName()).info(
+		SettingsManagerUpdateListener settingsManagerUpdateListener = new SettingsManagerUpdateListener();
+		settingsManager.addUpdateListener(settingsManagerUpdateListener);
+		settingsManager.addEndOfSettingsListener(settingsManagerUpdateListener);
+		settingsManager.start();
+		logger.info(
 				"Anmeldung am Datenverteiler abgeschlossen, jetzt gehts los.");
 	}
 
@@ -133,6 +200,5 @@ public class Archivator implements ClientReceiverInterface {
 		if (arg0 != null) {
 			threadPool.execute(new DBThread(arg0));
 		}
-
 	}
 }

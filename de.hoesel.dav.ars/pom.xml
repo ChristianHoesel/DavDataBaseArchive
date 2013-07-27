@@ -61,6 +61,11 @@
 			<version>3.5.0</version>
 		</dependency>
 		<dependency>
+			<groupId>de.bsvrz.sys.funclib</groupId>
+			<artifactId>de.bsvrz.sys.funclib.dataIdentificationSettings</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>eclipselink</artifactId>
 		</dependency>

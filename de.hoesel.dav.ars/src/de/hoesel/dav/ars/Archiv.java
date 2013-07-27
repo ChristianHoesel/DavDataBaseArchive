@@ -12,7 +12,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
-import org.eclipse.persistence.config.SessionCustomizer;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.sys.funclib.application.StandardApplication;
