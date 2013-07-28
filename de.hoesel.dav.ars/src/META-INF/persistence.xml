@@ -6,6 +6,11 @@
 		<class>de.hoesel.dav.ars.jpa.SystemObjectArchiv</class>
 		<class>de.hoesel.dav.ars.jpa.DefaultArchivData</class>
 		<class>de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq</class>
+		<class>de.hoesel.dav.ars.jpa.OdVerkehrsDatenLangZeitIntervall</class>
+		<class>de.hoesel.dav.ars.jpa.AtlGüte</class>
+		<class>de.hoesel.dav.ars.jpa.AtlStatus</class>
+		<class>de.hoesel.dav.ars.jpa.AtlVerkehrsStärkeStunde</class>
+		<class>de.hoesel.dav.ars.jpa.AtlGeschwindigkeit</class>
 		<properties>
 			<property name="eclipselink.session.customizer" value="de.hoesel.dav.ars.monitor.DatenverteilerArchivPerformanceMonitor"/>
 		</properties>

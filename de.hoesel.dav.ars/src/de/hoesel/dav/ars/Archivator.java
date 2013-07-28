@@ -20,6 +20,7 @@ package de.hoesel.dav.ars;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.persistence.EntityManager;
@@ -43,6 +44,7 @@ import de.bsvrz.sys.funclib.debug.Debug;
 import de.hoesel.dav.ars.jpa.DatenverteilerArchivDatensatz;
 import de.hoesel.dav.ars.jpa.DefaultArchivData;
 import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq;
+import de.hoesel.dav.ars.jpa.OdVerkehrsDatenLangZeitIntervall;
 import de.hoesel.dav.ars.jpa.SystemObjectArchiv;
 
 public class Archivator implements ClientReceiverInterface {
@@ -59,7 +61,7 @@ public class Archivator implements ClientReceiverInterface {
 	 * DB agieren, kann es sonst passieren, dass 2 gleichzeitig dasselbe
 	 * SystemObjekt anlegen.
 	 */
-	private Executor threadPool = Executors.newSingleThreadExecutor();// newCachedThreadPool();
+	private ExecutorService threadPool = Executors.newFixedThreadPool(1);//newSingleThreadExecutor();// newCachedThreadPool();
 	private ClientDavInterface connection;
 
 	private static final Debug logger = Debug.getLogger();
@@ -161,7 +163,8 @@ public class Archivator implements ClientReceiverInterface {
 				}
 				em.getTransaction().commit();
 			} catch (Exception ex) {
-				logger.error("Archivdaten konnten nicht gespeichert werden.", ex);
+				logger.error("Archivdaten konnten nicht gespeichert werden.",
+						ex);
 			} finally {
 				em.close();
 			}
@@ -174,6 +177,9 @@ public class Archivator implements ClientReceiverInterface {
 		if (desc.getAttributeGroup().getPid()
 				.equals("atg.verkehrsDatenKurzZeitMq")) {
 			result = new OdVerkehrsDatenKurzZeitMq(rd);
+		} else if (desc.getAttributeGroup().getPid()
+				.equals("atg.verkehrsDatenLangZeitIntervall")) {
+			result = new OdVerkehrsDatenLangZeitIntervall(rd);
 		} else {
 			result = new DefaultArchivData(rd);
 		}
@@ -208,8 +214,7 @@ public class Archivator implements ClientReceiverInterface {
 		settingsManager.addUpdateListener(settingsManagerUpdateListener);
 		settingsManager.addEndOfSettingsListener(settingsManagerUpdateListener);
 		settingsManager.start();
-		logger.info(
-				"Anmeldung am Datenverteiler abgeschlossen, jetzt gehts los.");
+		logger.info("Anmeldung am Datenverteiler abgeschlossen, jetzt gehts los.");
 	}
 
 	@Override

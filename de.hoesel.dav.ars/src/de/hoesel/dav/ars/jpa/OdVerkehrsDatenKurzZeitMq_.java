@@ -5,7 +5,7 @@ import javax.annotation.Generated;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@Generated(value="Dali", date="2013-06-22T19:33:35.504+0200")
+@Generated(value="Dali", date="2013-07-28T16:40:29.289+0200")
 @StaticMetamodel(OdVerkehrsDatenKurzZeitMq.class)
 public class OdVerkehrsDatenKurzZeitMq_ {
 	public static volatile SingularAttribute<OdVerkehrsDatenKurzZeitMq, Long> db_id;
