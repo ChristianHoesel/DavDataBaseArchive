@@ -61,7 +61,7 @@ public class Archivator implements ClientReceiverInterface {
 	 * DB agieren, kann es sonst passieren, dass 2 gleichzeitig dasselbe
 	 * SystemObjekt anlegen.
 	 */
-	private ExecutorService threadPool = Executors.newFixedThreadPool(1);//newSingleThreadExecutor();// newCachedThreadPool();
+	private ExecutorService threadPool = Executors.newSingleThreadExecutor();// newCachedThreadPool();
 	private ClientDavInterface connection;
 
 	private static final Debug logger = Debug.getLogger();
@@ -138,16 +138,18 @@ public class Archivator implements ClientReceiverInterface {
 	private class DBThread implements Runnable {
 
 		private final ResultData[] resultData;
-		private EntityManager em;
+		
 
 		public DBThread(ResultData[] resultData) {
 			this.resultData = resultData;
-			em = factory.createEntityManager();
+			
 		}
 
 		@Override
 		public void run() {
+			EntityManager em = factory.createEntityManager();
 			try {
+				
 				em.getTransaction().begin();
 				for (ResultData rd : resultData) {
 
@@ -194,6 +196,17 @@ public class Archivator implements ClientReceiverInterface {
 	public Archivator(EntityManagerFactory emFactory,
 			ClientDavInterface connection) {
 		factory = emFactory;
+
+		/*
+		 * Zuerst eine Verbindung zur DB herstellen, um zu checken, ob die
+		 * richtigen Relationen bereits vorhanden sind. Wird dies erst nach der
+		 * Anbmeldung am DAV gemacht, kann es passieren, dass wir schon viele
+		 * Daten empfangen, aber noch gar nicht genau wissen, ob die DB Struktur
+		 * stimmt.
+		 */
+		EntityManager entityManager = factory.createEntityManager();
+		entityManager.close();
+
 		this.connection = connection;
 		subscribeDavData();
 	}
