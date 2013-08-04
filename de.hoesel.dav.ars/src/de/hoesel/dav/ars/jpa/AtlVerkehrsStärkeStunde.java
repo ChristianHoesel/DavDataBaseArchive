@@ -1,5 +1,6 @@
 package de.hoesel.dav.ars.jpa;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,13 +12,15 @@ import de.bsvrz.dav.daf.main.Data;
 public class AtlVerkehrsStärkeStunde {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	private Long db_id;
 	
 	private Integer wert;
 	
+	@Embedded
 	private AtlStatus status;
 	
+	@Embedded
 	private AtlGüte guete;
 	
 	public AtlVerkehrsStärkeStunde(){

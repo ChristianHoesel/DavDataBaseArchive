@@ -79,7 +79,7 @@ public class Archiv implements StandardApplication {
 		properties.put(PersistenceUnitProperties.JDBC_USER, jdbcUser);
 		properties.put(PersistenceUnitProperties.JDBC_PASSWORD, jdbcPassword);
 		properties.put(PersistenceUnitProperties.DDL_GENERATION,
-				PersistenceUnitProperties.DROP_AND_CREATE);
+				PersistenceUnitProperties.CREATE_OR_EXTEND);
 		properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE,
 				PersistenceUnitProperties.DDL_DATABASE_GENERATION);
 

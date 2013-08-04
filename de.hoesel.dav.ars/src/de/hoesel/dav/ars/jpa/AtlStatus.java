@@ -8,12 +8,12 @@ import javax.persistence.Id;
 
 import de.bsvrz.dav.daf.main.Data;
 
-@Entity
+@Embeddable
 public class AtlStatus {
 	
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long db_id;
+//	@Id
+//	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+//	private Long db_id;
 
 	private Boolean erfassung_NichtErfasst;
 

@@ -47,7 +47,7 @@ public class DefaultArchivData implements Serializable,
 	private static final int BUFFER_SIZE = 4096;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	private Long db_id;
 
 	private SystemObjectArchiv systemObject;
