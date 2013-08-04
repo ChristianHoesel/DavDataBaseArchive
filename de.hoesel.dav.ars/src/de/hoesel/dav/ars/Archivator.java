@@ -19,9 +19,7 @@ package de.hoesel.dav.ars;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -52,19 +50,11 @@ public class Archivator implements ClientReceiverInterface {
 	public static final String PERSISTENCE_UNIT_NAME = "de.hoesel.dav.ars";
 	private final EntityManagerFactory factory;
 
-	/*
-	 * Damit synchronisieren wir unsere Warteschlagen und stellen sicher, dass
-	 * immer nur ein Commit gleichzeitig gemacht wird. Das ist notwendig, weil
-	 * wir schauen müssen, ob für des jeweilige SystemObjekt bereits ein
-	 * Archivdatensatz gespeichert wurde, ist das der Fall, so verwenden wir das
-	 * bereits vorhandene SystemObjekt. Wenn mehrere Thread gleichzeitig mit der
-	 * DB agieren, kann es sonst passieren, dass 2 gleichzeitig dasselbe
-	 * SystemObjekt anlegen.
-	 */
-	private ExecutorService threadPool = Executors.newSingleThreadExecutor();// newCachedThreadPool();
 	private ClientDavInterface connection;
 
 	private static final Debug logger = Debug.getLogger();
+
+	private LinkedBlockingDeque<ResultData> data2StoreList = new LinkedBlockingDeque<ResultData>();
 
 	/**
 	 * Reagiert bei Änderung der Archivparameter und organisiert die An- und
@@ -135,42 +125,58 @@ public class Archivator implements ClientReceiverInterface {
 		}
 	}
 
-	private class DBThread implements Runnable {
-
-		private final ResultData[] resultData;
-		
-
-		public DBThread(ResultData[] resultData) {
-			this.resultData = resultData;
-			
-		}
+	private class DBStorageThread extends Thread {
 
 		@Override
 		public void run() {
-			EntityManager em = factory.createEntityManager();
-			try {
-				
-				em.getTransaction().begin();
-				for (ResultData rd : resultData) {
+			super.run();
 
-					DatenverteilerArchivDatensatz neuerDatensatz = convert2DB(rd);
-					SystemObjectArchiv sysObj = em.find(
-							SystemObjectArchiv.class, rd.getObject().getId());
-					if (sysObj != null) {
-						// es gibt schon ArchivDatensätze für dieses
-						// SystemObjekt
-						neuerDatensatz.setSystemObject(sysObj);
+			while (!isInterrupted()) {
+				EntityManager entityManager = factory.createEntityManager();
+				;
+				try {
+					int i = 0;
+					ResultData rd = data2StoreList.take();
+					// long start = System.currentTimeMillis();
+					entityManager.getTransaction().begin();
+					while (rd != null && i++ < 5000) {
+
+						DatenverteilerArchivDatensatz neuerDatensatz = convert2DB(rd);
+						SystemObjectArchiv sysObj = entityManager.find(
+								SystemObjectArchiv.class, rd.getObject()
+										.getId());
+						if (sysObj != null) {
+							// es gibt schon ArchivDatensätze für dieses
+							// SystemObjekt
+							neuerDatensatz.setSystemObject(sysObj);
+						}
+						// entityManager.persist(neuerDatensatz);
+						entityManager.merge(neuerDatensatz);
+
+						if (data2StoreList.isEmpty()) {
+							break;
+						}
+						rd = data2StoreList.take();
 					}
-					em.merge(neuerDatensatz);
+					entityManager.getTransaction().commit();
+					// logger.info("Letzter Commit mit " + i + " Datensätzen ("
+					// + (System.currentTimeMillis() - start) + "ms).");
+				} catch (Exception ex) {
+					// logger.error(
+					// "Archivdaten konnten nicht gespeichert werden.", ex);
+					entityManager.close();
+					entityManager = factory.createEntityManager();
+				} finally {
+
+					entityManager.close();
 				}
-				em.getTransaction().commit();
-			} catch (Exception ex) {
-				logger.error("Archivdaten konnten nicht gespeichert werden.",
-						ex);
-			} finally {
-				em.close();
+
+				// logger.info("Warteschlange = " + data2StoreList.size());
+				yield();
 			}
+
 		}
+
 	}
 
 	private DatenverteilerArchivDatensatz convert2DB(final ResultData rd) {
@@ -197,15 +203,11 @@ public class Archivator implements ClientReceiverInterface {
 			ClientDavInterface connection) {
 		factory = emFactory;
 
-		/*
-		 * Zuerst eine Verbindung zur DB herstellen, um zu checken, ob die
-		 * richtigen Relationen bereits vorhanden sind. Wird dies erst nach der
-		 * Anbmeldung am DAV gemacht, kann es passieren, dass wir schon viele
-		 * Daten empfangen, aber noch gar nicht genau wissen, ob die DB Struktur
-		 * stimmt.
-		 */
 		EntityManager entityManager = factory.createEntityManager();
 		entityManager.close();
+
+		DBStorageThread s = new DBStorageThread();
+		s.start();
 
 		this.connection = connection;
 		subscribeDavData();
@@ -227,13 +229,22 @@ public class Archivator implements ClientReceiverInterface {
 		settingsManager.addUpdateListener(settingsManagerUpdateListener);
 		settingsManager.addEndOfSettingsListener(settingsManagerUpdateListener);
 		settingsManager.start();
-		logger.info("Anmeldung am Datenverteiler abgeschlossen, jetzt gehts los.");
+		logger.info("Anmeldung am Datenverteiler abgeschlossen, jetzt gehts los...");
 	}
 
 	@Override
 	public void update(final ResultData[] arg0) {
 		if (arg0 != null) {
-			threadPool.execute(new DBThread(arg0));
+			try {
+				for (ResultData rd : arg0) {
+					data2StoreList.add(rd);
+				}
+			} catch (Exception e) {
+				// FIXME: pauschales Exception werfen is böse
+				logger.error(
+						"Archiv kann Datensatz nicht der Warteschlange hinzufügen.",
+						e);
+			}
 		}
 	}
 }
