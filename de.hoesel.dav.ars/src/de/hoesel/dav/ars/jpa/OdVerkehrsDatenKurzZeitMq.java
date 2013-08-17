@@ -43,7 +43,7 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 		DatenverteilerArchivDatensatz {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long db_id;
 
 	private SystemObjectArchiv systemObject;
@@ -53,38 +53,44 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
 
-	private Integer qKfz;
+	private AtlVerkehrsStärkeStunde qKfz;
 
-	private Integer vKfz;
+	private AtlGeschwindigkeit vKfz;
 
-	private Integer qLkw;
+	private AtlVerkehrsStärkeStunde qLkw;
 
-	private Integer vLkw;
+	private AtlGeschwindigkeit vLkw;
 
-	private Integer qPkw;
+	private AtlVerkehrsStärkeStunde qPkw;
 
-	private Integer vPkw;
+	private AtlGeschwindigkeit vPkw;
 
-	private Float b;
+	private AtlProzent b;
 
+	//TODO
 	private Float bMax;
 
+	//TODO
 	private Integer sKfz;
 
+	//TODO
 	private Integer vgKfz;
 
-	private Float aLkw;
+	private AtlProzent aLkw;
 
-	private Integer kKfz;
+	private AtlFahrzeugDichte kKfz;
 
-	private Integer kPkw;
+	private AtlFahrzeugDichte kPkw;
 
-	private Integer kLkw;
+	private AtlFahrzeugDichte kLkw;
 
+	//TODO
 	private Float qB;
 
+	//TODO
 	private Float kB;
 
+	//TODO
 	private Float vDelta;
 
 	public OdVerkehrsDatenKurzZeitMq() {
@@ -99,34 +105,23 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 
 		Data daten = rd.getData();
 		if (daten != null) {
-			setqKfz(daten.getItem("QKfz").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setvKfz(daten.getItem("VKfz").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setqLkw(daten.getItem("QLkw").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setvLkw(daten.getItem("VLkw").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setqPkw(daten.getItem("QPkw").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setvPkw(daten.getItem("VPkw").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setB(daten.getItem("B").getItem("Wert").asUnscaledValue()
-					.floatValue());
+			setqKfz(new AtlVerkehrsStärkeStunde(daten.getItem("QKfz")));
+			setvKfz(new AtlGeschwindigkeit(daten.getItem("VKfz")));
+			setqLkw(new AtlVerkehrsStärkeStunde(daten.getItem("QLkw")));
+			setvLkw(new AtlGeschwindigkeit(daten.getItem("VLkw")));
+			setqPkw(new AtlVerkehrsStärkeStunde(daten.getItem("QPkw")));
+			setvPkw(new AtlGeschwindigkeit(daten.getItem("VPkw")));
+			setB(new AtlProzent(daten.getItem("B")));
 			setbMax(daten.getItem("BMax").getItem("Wert").asUnscaledValue()
 					.floatValue());
 			setsKfz(daten.getItem("SKfz").getItem("Wert").asUnscaledValue()
 					.intValue());
 			setVgKfz(daten.getItem("VgKfz").getItem("Wert").asUnscaledValue()
 					.intValue());
-			setaLkw(daten.getItem("ALkw").getItem("Wert").asUnscaledValue()
-					.floatValue());
-			setkKfz(daten.getItem("KKfz").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setkLkw(daten.getItem("KLkw").getItem("Wert").asUnscaledValue()
-					.intValue());
-			setkPkw(daten.getItem("KPkw").getItem("Wert").asUnscaledValue()
-					.intValue());
+			setaLkw(new AtlProzent(daten.getItem("ALkw")));
+			setkKfz(new AtlFahrzeugDichte(daten.getItem("KKfz")));
+			setkLkw(new AtlFahrzeugDichte(daten.getItem("KLkw")));
+			setkPkw(new AtlFahrzeugDichte(daten.getItem("KPkw")));
 			setqB(daten.getItem("QB").getItem("Wert").asUnscaledValue()
 					.floatValue());
 			setkB(daten.getItem("KB").getItem("Wert").asUnscaledValue()
@@ -143,62 +138,6 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
-	}
-
-	public int getqKfz() {
-		return qKfz;
-	}
-
-	public void setqKfz(int qKfz) {
-		this.qKfz = qKfz;
-	}
-
-	public int getvKfz() {
-		return vKfz;
-	}
-
-	public void setvKfz(int vKfz) {
-		this.vKfz = vKfz;
-	}
-
-	public int getqLkw() {
-		return qLkw;
-	}
-
-	public void setqLkw(int qLkw) {
-		this.qLkw = qLkw;
-	}
-
-	public int getvLkw() {
-		return vLkw;
-	}
-
-	public void setvLkw(int vLkw) {
-		this.vLkw = vLkw;
-	}
-
-	public int getqPkw() {
-		return qPkw;
-	}
-
-	public void setqPkw(int qPkw) {
-		this.qPkw = qPkw;
-	}
-
-	public int getvPkw() {
-		return vPkw;
-	}
-
-	public void setvPkw(int vPkw) {
-		this.vPkw = vPkw;
-	}
-
-	public float getB() {
-		return b;
-	}
-
-	public void setB(float b) {
-		this.b = b;
 	}
 
 	public float getbMax() {
@@ -223,30 +162,6 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 
 	public void setVgKfz(int vgKfz) {
 		this.vgKfz = vgKfz;
-	}
-
-	public float getaLkw() {
-		return aLkw;
-	}
-
-	public void setaLkw(float aLkw) {
-		this.aLkw = aLkw;
-	}
-
-	public int getkKfz() {
-		return kKfz;
-	}
-
-	public void setkKfz(int kKfz) {
-		this.kKfz = kKfz;
-	}
-
-	public int getkPkw() {
-		return kPkw;
-	}
-
-	public void setkPkw(int kPkw) {
-		this.kPkw = kPkw;
 	}
 
 	public float getqB() {
@@ -285,20 +200,128 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 		this.aspect = aspect;
 	}
 
-	public int getkLkw() {
-		return kLkw;
-	}
-
-	public void setkLkw(int kLkw) {
-		this.kLkw = kLkw;
-	}
-
 	public SystemObjectArchiv getSystemObject() {
 		return systemObject;
 	}
 
 	public void setSystemObject(SystemObjectArchiv systemObject) {
 		this.systemObject = systemObject;
+	}
+
+	public AtlVerkehrsStärkeStunde getqKfz() {
+		return qKfz;
+	}
+
+	public void setqKfz(AtlVerkehrsStärkeStunde qKfz) {
+		this.qKfz = qKfz;
+	}
+
+	public AtlGeschwindigkeit getvKfz() {
+		return vKfz;
+	}
+
+	public void setvKfz(AtlGeschwindigkeit vKfz) {
+		this.vKfz = vKfz;
+	}
+
+	public AtlVerkehrsStärkeStunde getqLkw() {
+		return qLkw;
+	}
+
+	public void setqLkw(AtlVerkehrsStärkeStunde qLkw) {
+		this.qLkw = qLkw;
+	}
+
+	public AtlGeschwindigkeit getvLkw() {
+		return vLkw;
+	}
+
+	public void setvLkw(AtlGeschwindigkeit vLkw) {
+		this.vLkw = vLkw;
+	}
+
+	public AtlVerkehrsStärkeStunde getqPkw() {
+		return qPkw;
+	}
+
+	public void setqPkw(AtlVerkehrsStärkeStunde qPkw) {
+		this.qPkw = qPkw;
+	}
+
+	public AtlGeschwindigkeit getvPkw() {
+		return vPkw;
+	}
+
+	public void setvPkw(AtlGeschwindigkeit vPkw) {
+		this.vPkw = vPkw;
+	}
+
+	public AtlProzent getB() {
+		return b;
+	}
+
+	public void setB(AtlProzent b) {
+		this.b = b;
+	}
+
+	public AtlProzent getaLkw() {
+		return aLkw;
+	}
+
+	public void setaLkw(AtlProzent aLkw) {
+		this.aLkw = aLkw;
+	}
+
+	public AtlFahrzeugDichte getkKfz() {
+		return kKfz;
+	}
+
+	public void setkKfz(AtlFahrzeugDichte kKfz) {
+		this.kKfz = kKfz;
+	}
+
+	public AtlFahrzeugDichte getkPkw() {
+		return kPkw;
+	}
+
+	public void setkPkw(AtlFahrzeugDichte kPkw) {
+		this.kPkw = kPkw;
+	}
+
+	public AtlFahrzeugDichte getkLkw() {
+		return kLkw;
+	}
+
+	public void setkLkw(AtlFahrzeugDichte kLkw) {
+		this.kLkw = kLkw;
+	}
+
+	public void setDb_id(Long db_id) {
+		this.db_id = db_id;
+	}
+
+	public void setbMax(Float bMax) {
+		this.bMax = bMax;
+	}
+
+	public void setsKfz(Integer sKfz) {
+		this.sKfz = sKfz;
+	}
+
+	public void setVgKfz(Integer vgKfz) {
+		this.vgKfz = vgKfz;
+	}
+
+	public void setqB(Float qB) {
+		this.qB = qB;
+	}
+
+	public void setkB(Float kB) {
+		this.kB = kB;
+	}
+
+	public void setvDelta(Float vDelta) {
+		this.vDelta = vDelta;
 	}
 
 }

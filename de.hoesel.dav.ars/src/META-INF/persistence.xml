@@ -9,6 +9,9 @@
 		<class>de.hoesel.dav.ars.jpa.OdVerkehrsDatenLangZeitIntervall</class>
 		<class>de.hoesel.dav.ars.jpa.AtlVerkehrsStärkeStunde</class>
 		<class>de.hoesel.dav.ars.jpa.AtlGeschwindigkeit</class>
+		<class>de.hoesel.dav.ars.jpa.AtlProzent</class>
+		<class>de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitFs</class>
+		<class>de.hoesel.dav.ars.jpa.AtlFahrzeugDichte</class>
 		<properties>
 			<property name="eclipselink.session.customizer" value="de.hoesel.dav.ars.monitor.DatenverteilerArchivPerformanceMonitor"/>
 			<property name="eclipselink.jdbc.batch-writing" value="JDBC"/>

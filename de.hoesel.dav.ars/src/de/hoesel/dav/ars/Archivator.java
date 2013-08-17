@@ -41,6 +41,7 @@ import de.bsvrz.sys.funclib.dataIdentificationSettings.UpdateListener;
 import de.bsvrz.sys.funclib.debug.Debug;
 import de.hoesel.dav.ars.jpa.DatenverteilerArchivDatensatz;
 import de.hoesel.dav.ars.jpa.DefaultArchivData;
+import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitFs;
 import de.hoesel.dav.ars.jpa.OdVerkehrsDatenKurzZeitMq;
 import de.hoesel.dav.ars.jpa.OdVerkehrsDatenLangZeitIntervall;
 import de.hoesel.dav.ars.jpa.SystemObjectArchiv;
@@ -125,6 +126,12 @@ public class Archivator implements ClientReceiverInterface {
 		}
 	}
 
+	/**
+	 * {@link Thread} zur asynchronen Speicherung der ankommenden Datensätze.
+	 * 
+	 * @author Christian
+	 * 
+	 */
 	private class DBStorageThread extends Thread {
 
 		@Override
@@ -188,6 +195,9 @@ public class Archivator implements ClientReceiverInterface {
 		} else if (desc.getAttributeGroup().getPid()
 				.equals("atg.verkehrsDatenLangZeitIntervall")) {
 			result = new OdVerkehrsDatenLangZeitIntervall(rd);
+		} else if (desc.getAttributeGroup().getPid()
+				.equals("atg.verkehrsDatenKurzZeitFs")) {
+			result = new OdVerkehrsDatenKurzZeitFs(rd);
 		} else {
 			result = new DefaultArchivData(rd);
 		}
