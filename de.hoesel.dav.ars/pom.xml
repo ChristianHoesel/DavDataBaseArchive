@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.hoesel.dav.ars</groupId>
 	<artifactId>de.hoesel.dav.ars</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>Datenverteiler Datenbank Archiv</name>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
