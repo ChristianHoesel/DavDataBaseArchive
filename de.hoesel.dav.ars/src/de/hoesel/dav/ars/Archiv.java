@@ -30,6 +30,7 @@ import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.sys.funclib.application.StandardApplication;
 import de.bsvrz.sys.funclib.application.StandardApplicationRunner;
 import de.bsvrz.sys.funclib.commandLineArgs.ArgumentList;
+import de.hoesel.dav.ars.query.ArchivQueryReceiver;
 
 /**
  * @author Christian
@@ -87,7 +88,11 @@ public class Archiv implements StandardApplication {
 				.createEntityManagerFactory(Archivator.PERSISTENCE_UNIT_NAME,
 						properties);
 
+		//Archivierung initialisieren
 		new Archivator(entityManagerFactory, connection);
+		
+		//Archivanfragen empfangen und deligieren
+		ArchivQueryReceiver.getInstance(connection);
 
 	}
 
