@@ -6,6 +6,10 @@ package de.hoesel.dav.ars.query;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.dav.daf.main.ClientReceiverInterface;
@@ -14,10 +18,17 @@ import de.bsvrz.dav.daf.main.DataDescription;
 import de.bsvrz.dav.daf.main.ReceiveOptions;
 import de.bsvrz.dav.daf.main.ReceiverRole;
 import de.bsvrz.dav.daf.main.ResultData;
+import de.bsvrz.dav.daf.main.archive.ArchiveDataKindCombination;
+import de.bsvrz.dav.daf.main.archive.ArchiveDataSpecification;
+import de.bsvrz.dav.daf.main.archive.ArchiveOrder;
+import de.bsvrz.dav.daf.main.archive.ArchiveRequestOption;
+import de.bsvrz.dav.daf.main.archive.ArchiveTimeSpecification;
+import de.bsvrz.dav.daf.main.archive.TimingType;
 import de.bsvrz.dav.daf.main.config.Aspect;
 import de.bsvrz.dav.daf.main.config.AttributeGroup;
 import de.bsvrz.dav.daf.main.config.SystemObject;
 import de.bsvrz.sys.funclib.communicationStreams.StreamMultiplexer;
+import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
 import de.bsvrz.sys.funclib.debug.Debug;
 
 /**
@@ -29,40 +40,43 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 	private static final Debug logger = Debug.getLogger();
 
 	/** PID der Attributgruppe ArchivAnfrageSchnittstelle. */
-	private static final String ATG_QUERY_PID = "atg.archivAnfrageSchnittstelle";
+	public static final String ATG_QUERY_PID = "atg.archivAnfrageSchnittstelle";
 
 	/**
 	 * PID des Anfrage-Aspekts bei der Attributgruppe
 	 * ArchivAnfrageSchnittstelle.
 	 */
-	private static final String ASP_QUERY_PID = "asp.anfrage";
+	public static final String ASP_QUERY_PID = "asp.anfrage";
 
 	/**
 	 * PID des Antwort-Aspekts bei der Attributgruppe
 	 * ArchivAnfrageSchnittstelle.
 	 */
-	private static final String ASP_RESPONSE_PID = "asp.antwort";
+	public static final String ASP_RESPONSE_PID = "asp.antwort";
 
 	/** Name des Attributs mit Referenz auf den Absender eines Datensatzes. */
-	private final static String ATT_SENDER_NAME = "absender";
+	public final static String ATT_SENDER_NAME = "absender";
 
 	/**
 	 * Name des Attributs mit dem Anfrage-Index zur Unterscheidung mehrerer
 	 * paralleler Anfragen.
 	 */
-	private final static String ATT_QUERY_IDX_NAME = "anfrageIndex";
+	public final static String ATT_QUERY_IDX_NAME = "anfrageIndex";
 
 	/** Name des Attributs mit dem Typ der Nachricht. */
-	private final static String ATT_MESSAGE_TYP_NAME = "nachrichtenTyp";
+	public final static String ATT_MESSAGE_TYP_NAME = "nachrichtenTyp";
 
 	/** Name des Attributs mit den Datenbytes der Nachricht. */
-	private final static String ATT_DATA_NAME = "daten";
+	public final static String ATT_DATA_NAME = "daten";
 
 	private ClientDavInterface con;
 
 	private static ArchivQueryReceiver INSTANCE;
 
-	private Map<ArchivQueryIdentifier, StreamMultiplexer> aktiveAnfragen = new HashMap<ArchivQueryIdentifier, StreamMultiplexer>();
+	private Map<ArchivQueryIdentifier, MyArchiveQueryTask> aktiveAnfragen = new HashMap<ArchivQueryIdentifier, MyArchiveQueryTask>();
+
+	private ScheduledExecutorService scheduler = Executors
+			.newScheduledThreadPool(10);
 
 	private ArchivQueryReceiver(final ClientDavInterface con) {
 		this.con = con;
@@ -73,8 +87,8 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 
 		// TODO: parametrierbar, für welches Archiv wir uns als Empfänger für
 		// Archivanfragen zuständig fühlen.
-		this.con.subscribeReceiver(this, con.getLocalConfigurationAuthority(), desc,
-				ReceiveOptions.normal(), ReceiverRole.drain());
+		this.con.subscribeReceiver(this, con.getLocalConfigurationAuthority(),
+				desc, ReceiveOptions.normal(), ReceiverRole.drain());
 	}
 
 	public static final ArchivQueryReceiver getInstance(ClientDavInterface con) {
@@ -149,8 +163,19 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 	}
 
 	private void createNewArchivAnfrage(ResultData rd) {
-		// TODO Auto-generated method stub
-		
+		Data data = rd.getData(); // Datensatz
+		SystemObject queryAppObj = data.getReferenceValue(ATT_SENDER_NAME)
+				.getSystemObject(); // Anfrage-Applikation
+		int queryIdx = data.getUnscaledValue(ATT_QUERY_IDX_NAME).intValue(); // Anfrage-Index
+		ArchivQueryIdentifier identifier = new ArchivQueryIdentifier(
+				queryAppObj, queryIdx);
+
+		MyArchiveQueryTask task = new MyArchiveQueryTask(con, rd);
+		synchronized (aktiveAnfragen) {
+			aktiveAnfragen.put(identifier, task);
+		}
+		scheduler.execute(task);
+
 	}
 
 	private void processStreamControl(ResultData resultData) {
@@ -168,15 +193,19 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 		// registriert ist,
 		// und Steuerungspaket zur Flusskontrolle uebergeben:
 		synchronized (aktiveAnfragen) {
-
-			StreamMultiplexer mux = aktiveAnfragen.get(identifier);
-			if (mux != null) {
-				try {
-					mux.setMaximumStreamTicketIndexForStream(dataArray);
-				} catch (IOException e) {
-					logger.warning(
-							"Flusskontroll-Steuerungspaket konnte nicht an StreamMultiplexer uebergeben werden.",
-							e);
+			MyArchiveQueryTask myArchiveQueryTask = aktiveAnfragen
+					.get(identifier);
+			if (myArchiveQueryTask != null) {
+				StreamMultiplexer mux = myArchiveQueryTask
+						.getStreamMultiplexer();
+				if (mux != null) {
+					try {
+						mux.setMaximumStreamTicketIndexForStream(dataArray);
+					} catch (IOException e) {
+						logger.warning(
+								"Flusskontroll-Steuerungspaket konnte nicht an StreamMultiplexer uebergeben werden.",
+								e);
+					}
 				}
 			}
 		}
