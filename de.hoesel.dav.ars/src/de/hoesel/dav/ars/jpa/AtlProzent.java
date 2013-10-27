@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
 
 @Entity
@@ -30,6 +31,12 @@ public class AtlProzent {
 		setWert(item.getUnscaledValue("Wert").intValue());
 		setStatus(new AtlStatus(item.getItem("Status")));
 		setGüte(new AtlGüte(item.getItem("Güte")));
+	}
+	
+	public void jpa2Data(Data data, final ClientDavConnection con){
+		data.getUnscaledValue("Wert").set(wert);
+		status.jpa2Data(data.getItem("Status"),con);
+		guete.jpa2Data(data.getItem("Güte"),con);
 	}
 
 	public Integer getWert() {

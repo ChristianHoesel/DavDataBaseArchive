@@ -11,13 +11,18 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.persistence.EntityManagerFactory;
+
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.dav.daf.main.ClientReceiverInterface;
+import de.bsvrz.dav.daf.main.ClientSenderInterface;
 import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.DataDescription;
+import de.bsvrz.dav.daf.main.OneSubscriptionPerSendData;
 import de.bsvrz.dav.daf.main.ReceiveOptions;
 import de.bsvrz.dav.daf.main.ReceiverRole;
 import de.bsvrz.dav.daf.main.ResultData;
+import de.bsvrz.dav.daf.main.SenderRole;
 import de.bsvrz.dav.daf.main.archive.ArchiveDataKindCombination;
 import de.bsvrz.dav.daf.main.archive.ArchiveDataSpecification;
 import de.bsvrz.dav.daf.main.archive.ArchiveOrder;
@@ -29,13 +34,14 @@ import de.bsvrz.dav.daf.main.config.AttributeGroup;
 import de.bsvrz.dav.daf.main.config.SystemObject;
 import de.bsvrz.sys.funclib.communicationStreams.StreamMultiplexer;
 import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
+import de.bsvrz.sys.funclib.dataSerializer.NoSuchVersionException;
 import de.bsvrz.sys.funclib.debug.Debug;
 
 /**
  * @author Christian
  * 
  */
-public class ArchivQueryReceiver implements ClientReceiverInterface {
+public class ArchivQueryReceiver implements ClientReceiverInterface, ClientSenderInterface {
 
 	private static final Debug logger = Debug.getLogger();
 
@@ -78,12 +84,27 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 	private ScheduledExecutorService scheduler = Executors
 			.newScheduledThreadPool(10);
 
-	private ArchivQueryReceiver(final ClientDavInterface con) {
+	private EntityManagerFactory entityManagerFactory;
+
+	private ArchivQueryReceiver(EntityManagerFactory entityManagerFactory,
+			final ClientDavInterface con) {
 		this.con = con;
+		this.entityManagerFactory = entityManagerFactory;
 		AttributeGroup attributeGroup = con.getDataModel().getAttributeGroup(
 				ATG_QUERY_PID);
-		Aspect aspect = con.getDataModel().getAspect(ASP_QUERY_PID);
-		DataDescription desc = new DataDescription(attributeGroup, aspect);
+
+		Aspect aspectQuery = con.getDataModel().getAspect(ASP_QUERY_PID);
+		Aspect aspectResponse = con.getDataModel().getAspect(ASP_RESPONSE_PID);
+		DataDescription desc = new DataDescription(attributeGroup, aspectQuery);
+
+		try {
+			this.con.subscribeSender(this, con.getLocalConfigurationAuthority(),
+					new DataDescription(attributeGroup, aspectResponse),
+					SenderRole.sender());
+		} catch (OneSubscriptionPerSendData e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		// TODO: parametrierbar, für welches Archiv wir uns als Empfänger für
 		// Archivanfragen zuständig fühlen.
@@ -91,9 +112,10 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 				desc, ReceiveOptions.normal(), ReceiverRole.drain());
 	}
 
-	public static final ArchivQueryReceiver getInstance(ClientDavInterface con) {
+	public static final ArchivQueryReceiver getInstance(
+			EntityManagerFactory entityManagerFactory, ClientDavInterface con) {
 		if (INSTANCE == null) {
-			INSTANCE = new ArchivQueryReceiver(con);
+			INSTANCE = new ArchivQueryReceiver(entityManagerFactory, con);
 		}
 		return INSTANCE;
 	}
@@ -170,11 +192,17 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 		ArchivQueryIdentifier identifier = new ArchivQueryIdentifier(
 				queryAppObj, queryIdx);
 
-		MyArchiveQueryTask task = new MyArchiveQueryTask(con, rd);
-		synchronized (aktiveAnfragen) {
-			aktiveAnfragen.put(identifier, task);
+		MyArchiveQueryTask task;
+		try {
+			task = new MyArchiveQueryTask(entityManagerFactory, con, rd);
+			synchronized (aktiveAnfragen) {
+				aktiveAnfragen.put(identifier, task);
+			}
+			scheduler.execute(task);
+		} catch (NoSuchVersionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		scheduler.execute(task);
 
 	}
 
@@ -196,20 +224,31 @@ public class ArchivQueryReceiver implements ClientReceiverInterface {
 			MyArchiveQueryTask myArchiveQueryTask = aktiveAnfragen
 					.get(identifier);
 			if (myArchiveQueryTask != null) {
-				StreamMultiplexer mux = myArchiveQueryTask
-						.getStreamMultiplexer();
-				if (mux != null) {
-					try {
-						mux.setMaximumStreamTicketIndexForStream(dataArray);
-					} catch (IOException e) {
-						logger.warning(
-								"Flusskontroll-Steuerungspaket konnte nicht an StreamMultiplexer uebergeben werden.",
-								e);
-					}
+				try {
+					myArchiveQueryTask
+							.setMaximumStreamTicketIndexForStream(dataArray);
+				} catch (IOException e) {
+					logger.warning(
+							"Flusskontroll-Steuerungspaket konnte nicht an StreamMultiplexer uebergeben werden.",
+							e);
 				}
 			}
 		}
 
+	}
+
+	@Override
+	public void dataRequest(SystemObject object,
+			DataDescription dataDescription, byte state) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isRequestSupported(SystemObject object,
+			DataDescription dataDescription) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

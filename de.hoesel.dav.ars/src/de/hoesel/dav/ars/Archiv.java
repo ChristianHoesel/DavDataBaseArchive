@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
@@ -88,11 +89,16 @@ public class Archiv implements StandardApplication {
 				.createEntityManagerFactory(Archivator.PERSISTENCE_UNIT_NAME,
 						properties);
 
-		//Archivierung initialisieren
+		// Offensichtlich werden beim ersten Erzeugen eines EntityManagers
+		// diverse Caches oder so initialisiert.
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+		entityManager.close();
+
+		// Archivierung initialisieren
 		new Archivator(entityManagerFactory, connection);
-		
-		//Archivanfragen empfangen und deligieren
-		ArchivQueryReceiver.getInstance(connection);
+
+		// Archivanfragen empfangen und deligieren
+		ArchivQueryReceiver.getInstance(entityManagerFactory, connection);
 
 	}
 

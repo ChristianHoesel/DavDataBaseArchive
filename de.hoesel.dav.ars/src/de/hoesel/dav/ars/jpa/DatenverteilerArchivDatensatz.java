@@ -19,6 +19,9 @@ package de.hoesel.dav.ars.jpa;
 
 import java.util.Date;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
+import de.bsvrz.dav.daf.main.ResultData;
+
 /**
  * Schnittstelle, die alle konkreten Archidatensätze implementieren müssen.
  * 
@@ -34,5 +37,9 @@ public interface DatenverteilerArchivDatensatz {
 	SystemObjectArchiv getSystemObject();
 
 	void setSystemObject(SystemObjectArchiv systemObject);
+	
+	ResultData convert2ResultData(final ClientDavConnection con);
+	
+	Long getDb_id();
 
 }

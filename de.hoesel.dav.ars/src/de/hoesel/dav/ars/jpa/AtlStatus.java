@@ -1,19 +1,16 @@
 package de.hoesel.dav.ars.jpa;
 
 import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
 
 @Embeddable
 public class AtlStatus {
-	
-//	@Id
-//	@GeneratedValue(strategy=GenerationType.SEQUENCE)
-//	private Long db_id;
+
+	// @Id
+	// @GeneratedValue(strategy=GenerationType.SEQUENCE)
+	// private Long db_id;
 
 	private Boolean erfassung_NichtErfasst;
 
@@ -53,6 +50,29 @@ public class AtlStatus {
 		setMesswertErsetzung_Interpoliert(item.getItem("MessWertErsetzung")
 				.getUnscaledValue("Interpoliert").shortValue() > 0 ? true
 				: false);
+
+	}
+
+	public void jpa2Data(Data item, ClientDavConnection con) {
+		item.getItem("Erfassung").getUnscaledValue("NichtErfasst")
+				.set(getErfassung_NichtErfasst() ? 1 : 0);
+		item.getItem("PlFormal").getUnscaledValue("WertMax")
+				.set(getPlFormal_WertMax() ? 1 : 0);
+
+		item.getItem("PlFormal").getUnscaledValue("WertMin")
+				.set(getPlFormal_WertMin() ? 1 : 0);
+
+		item.getItem("PlLogisch").getUnscaledValue("WertMaxLogisch")
+				.set(getPlLogisch_WertMaxLogisch() ? 1 : 0);
+
+		item.getItem("PlLogisch").getUnscaledValue("WertMinLogisch")
+				.set(getPlLogisch_WertMinLogisch() ? 1 : 0);
+
+		item.getItem("MessWertErsetzung").getUnscaledValue("Implausibel")
+				.set(getMesswertErsetzung_Implausiebel() ? 1 : 0);
+
+		item.getItem("MessWertErsetzung").getUnscaledValue("Interpoliert")
+				.set(getMesswertErsetzung_Interpoliert() ? 1 : 0);
 
 	}
 

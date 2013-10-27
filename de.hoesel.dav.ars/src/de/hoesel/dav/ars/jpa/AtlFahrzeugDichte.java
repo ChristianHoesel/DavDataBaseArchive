@@ -31,8 +31,9 @@ public class AtlFahrzeugDichte {
 		setWert(item.getUnscaledValue("Wert").shortValue());
 		setStatus(new AtlStatus(item.getItem("Status")));
 		setGüte(new AtlGüte(item.getItem("Güte")));
-
 	}
+	
+	
 
 	public Long getDb_id() {
 		return db_id;

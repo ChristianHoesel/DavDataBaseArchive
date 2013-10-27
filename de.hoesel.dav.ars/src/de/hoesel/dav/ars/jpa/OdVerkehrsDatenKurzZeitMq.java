@@ -27,6 +27,7 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.ResultData;
 
@@ -131,6 +132,15 @@ public class OdVerkehrsDatenKurzZeitMq implements Serializable,
 		}
 
 	}
+	
+	@Override
+	public ResultData convert2ResultData(final ClientDavConnection con) {
+		
+		
+		throw new IllegalStateException("Not implemented yet :(");
+//		return null;
+	}
+
 
 	public Date getTimestamp() {
 		return timestamp;

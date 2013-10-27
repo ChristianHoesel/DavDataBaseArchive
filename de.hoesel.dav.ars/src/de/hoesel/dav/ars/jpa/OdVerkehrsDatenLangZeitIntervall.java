@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.ResultData;
 
@@ -121,6 +122,15 @@ public class OdVerkehrsDatenLangZeitIntervall implements Serializable,
 			setvSattelKfz(new AtlGeschwindigkeit(daten.getItem("vSattelKfz")));
 		}
 	}
+	
+	@Override
+	public ResultData convert2ResultData(final ClientDavConnection con) {
+		
+		
+		throw new IllegalStateException("Not implemented yet :(");
+//		return null;
+	}
+
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;

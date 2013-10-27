@@ -213,9 +213,6 @@ public class Archivator implements ClientReceiverInterface {
 			ClientDavInterface connection) {
 		factory = emFactory;
 
-		EntityManager entityManager = factory.createEntityManager();
-		entityManager.close();
-
 		DBStorageThread s = new DBStorageThread();
 		s.start();
 

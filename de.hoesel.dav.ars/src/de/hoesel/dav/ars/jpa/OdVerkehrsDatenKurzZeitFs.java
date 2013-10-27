@@ -9,8 +9,13 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
+import de.bsvrz.dav.daf.main.DataDescription;
 import de.bsvrz.dav.daf.main.ResultData;
+import de.bsvrz.dav.daf.main.config.Aspect;
+import de.bsvrz.dav.daf.main.config.AttributeGroup;
+import de.bsvrz.dav.daf.main.config.SystemObject;
 
 @Entity
 public class OdVerkehrsDatenKurzZeitFs implements
@@ -81,6 +86,20 @@ public class OdVerkehrsDatenKurzZeitFs implements
 		}
 	}
 
+	@Override
+	public ResultData convert2ResultData( final ClientDavConnection con) {
+		 
+		SystemObject object = con.getDataModel().getObject(systemObject.getPid());
+		Aspect asp = con.getDataModel().getAspect(getAspect());
+		AttributeGroup atg = con.getDataModel().getAttributeGroup("atg.verkehrsDatenKurzZeitFs");
+		
+		Data data = con.createData(atg);
+		//TODO
+		
+		return new ResultData(object, new DataDescription(atg, asp), getTimestamp().getTime(), data);
+	}
+
+	
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
 
@@ -241,5 +260,6 @@ public class OdVerkehrsDatenKurzZeitFs implements
 	public void setkB(Float kB) {
 		this.kB = kB;
 	}
+
 
 }

@@ -17,11 +17,14 @@
 
 package de.hoesel.dav.ars.jpa;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.naming.OperationNotSupportedException;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,7 +33,10 @@ import javax.persistence.Lob;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
+import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.ResultData;
+import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
 import de.bsvrz.sys.funclib.dataSerializer.Serializer;
 import de.bsvrz.sys.funclib.dataSerializer.SerializingFactory;
 
@@ -144,5 +150,22 @@ public class DefaultArchivData implements Serializable,
 	public void setSystemObject(SystemObjectArchiv systemObject) {
 		this.systemObject = systemObject;
 	}
+
+	@Override
+	public ResultData convert2ResultData(final ClientDavConnection con) {
+		
+		
+		throw new IllegalStateException("Not implemented yet :(");
+//		return null;
+	}
+
+	public Long getDb_id() {
+		return db_id;
+	}
+
+	public void setDb_id(Long db_id) {
+		this.db_id = db_id;
+	}
+
 
 }

@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
 
 @Embeddable
@@ -42,6 +43,11 @@ public class AtlGüte {
 
 	public void setVerfahren(String verfahren) {
 		this.verfahren = verfahren;
+	}
+
+	public void jpa2Data(Data item, ClientDavConnection con) {
+		item.getUnscaledValue("Index").set(güteIndex);
+		item.getTextValue("Verfahren").setText(verfahren);
 	}
 
 }
