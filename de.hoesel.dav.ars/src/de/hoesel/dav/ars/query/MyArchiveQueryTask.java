@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -55,8 +56,18 @@ public class MyArchiveQueryTask implements Runnable {
 
 			if (iterator.hasNext()) {
 				try {
+
 					DefaultArchivData datum = (DefaultArchivData) (iterator
 							.next());
+
+					while (datum.getData() == null && iterator.hasNext()) {
+						datum = (DefaultArchivData) iterator.next();
+					}
+
+					if (datum.getData() == null) {
+						// letzter Datensatz
+					}
+
 					// Datenaufbereitung gemaess DatK 7.2.3.12
 					bosResult.reset();
 					// TODO:
@@ -67,13 +78,28 @@ public class MyArchiveQueryTask implements Runnable {
 					// TODO:
 					serializer.writeLong(datum.getTimestamp().getTime());
 					serializer.writeLong(datum.getDb_id());
-					// TODO:
-					serializer.writeInt(DataState.DATA.getCode());
-					serializer.writeInt(serializerVersion);
-					serializer.writeByte(ArchiveDataCompression.NONE.getCode());
 					byte[] data = datum.getData();
-					serializer.writeInt(data.length);
-					serializer.writeBytes(data);
+					if (data == null) {
+						// TODO:
+						serializer.writeInt(DataState.END_OF_ARCHIVE.getCode());
+						serializer.writeInt(serializerVersion);
+						serializer.writeByte(ArchiveDataCompression.NONE.getCode());
+						serializer.writeInt(0);
+					} else {
+						// TODO:
+						serializer.writeInt(DataState.DATA.getCode());
+						serializer.writeInt(serializerVersion);
+						serializer.writeByte(ArchiveDataCompression.NONE
+								.getCode());
+
+						serializer.writeInt(data.length);
+						serializer.writeBytes(data);
+					}
+					System.out.println("Versende: "
+							+ Arrays.toString(bosResult.toByteArray()));
+					if(Arrays.toString(bosResult.toByteArray()).endsWith("-1]")){
+						return null;
+					}
 					return bosResult.toByteArray();
 
 				} catch (IOException e) {
@@ -191,7 +217,6 @@ public class MyArchiveQueryTask implements Runnable {
 																			// wird
 																			// spaeter
 																			// gesetzt
-		createStreamMultiplexer();
 	}
 
 	/**
@@ -222,9 +247,9 @@ public class MyArchiveQueryTask implements Runnable {
 			SystemObjectArchiv jpaObj = em.find(SystemObjectArchiv.class,
 					object.getId());
 			Query createQuery = em
-					.createQuery("select * from DefaultArchivData where timestamp >= "
-							+ spec.getTimeSpec().getIntervalStart()
-							+ " and systemObject = " + jpaObj);
+					.createQuery("select archivData from DefaultArchivData as archivData where "
+							+ "archivData.systemObject = :JPA_OBJECT");
+			createQuery.setParameter("JPA_OBJECT", jpaObj);
 
 			List resultList = createQuery.getResultList();
 
@@ -233,28 +258,14 @@ public class MyArchiveQueryTask implements Runnable {
 			mux = new StreamMultiplexer(1, BLOCKING_FACTOR_MUX_DEFAULT,
 					BUFFER_SIZE_MUX_DEFAULT, serializerVersion,
 					new ArchivStreamMultiplexerDiretor(iterator));
+
 			sendInitialResponse(true, "");
+			mux.sendAllStreamData();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-			sendInitialResponse(false, e1.getLocalizedMessage());
+			sendInitialResponse(true, e1.getLocalizedMessage());
 		}
-	}
-
-	private void createStreamMultiplexer() {
-		// Data data = rd.getData(); // Datensatz
-		// SystemObject queryAppObj =
-		// data.getReferenceValue(ArchivQueryReceiver.ATT_SENDER_NAME)
-		// .getSystemObject(); // Anfrage-Applikation
-		// int queryIdx =
-		// data.getUnscaledValue(ArchivQueryReceiver.ATT_QUERY_IDX_NAME).intValue();
-		// // Anfrage-Index
-		// ArchivQueryIdentifier identifier = new ArchivQueryIdentifier(
-		// queryAppObj, queryIdx);
-
-		// TODO: Die ganzen Parameter auf Sinnhaftigkeit überprüfen.
-		// XXX: Wir liefern nur einen Stream
-
 	}
 
 	/**
@@ -431,7 +442,12 @@ public class MyArchiveQueryTask implements Runnable {
 			gData.getItem(ArchivQueryReceiver.ATT_MESSAGE_TYP_NAME)
 					.asUnscaledValue().set(MessageType.INITIAL_QUERY_RESULT);
 			Data.Array data = gData.getArray(ArchivQueryReceiver.ATT_DATA_NAME);
-			data.setLength(0);
+
+			byte[] byteArray = bosResult.toByteArray();
+			data.setLength(byteArray.length);
+			for (int i = 0; i < byteArray.length; i++) {
+				data.getItem(i).asUnscaledValue().set(byteArray[i]);
+			}
 			gResultData.setDataTime(System.currentTimeMillis());
 			con.sendData(gResultData);
 		} catch (Exception e) {

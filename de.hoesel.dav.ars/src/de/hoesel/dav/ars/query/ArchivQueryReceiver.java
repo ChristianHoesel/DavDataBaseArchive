@@ -94,17 +94,17 @@ public class ArchivQueryReceiver implements ClientReceiverInterface, ClientSende
 				ATG_QUERY_PID);
 
 		Aspect aspectQuery = con.getDataModel().getAspect(ASP_QUERY_PID);
-		Aspect aspectResponse = con.getDataModel().getAspect(ASP_RESPONSE_PID);
+//		Aspect aspectResponse = con.getDataModel().getAspect(ASP_RESPONSE_PID);
 		DataDescription desc = new DataDescription(attributeGroup, aspectQuery);
-
-		try {
-			this.con.subscribeSender(this, con.getLocalConfigurationAuthority(),
-					new DataDescription(attributeGroup, aspectResponse),
-					SenderRole.sender());
-		} catch (OneSubscriptionPerSendData e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//
+//		try {
+//			this.con.subscribeSender(this, con.getLocalConfigurationAuthority(),
+//					new DataDescription(attributeGroup, aspectResponse),
+//					SenderRole.sender());
+//		} catch (OneSubscriptionPerSendData e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		// TODO: parametrierbar, für welches Archiv wir uns als Empfänger für
 		// Archivanfragen zuständig fühlen.
@@ -192,6 +192,20 @@ public class ArchivQueryReceiver implements ClientReceiverInterface, ClientSende
 		ArchivQueryIdentifier identifier = new ArchivQueryIdentifier(
 				queryAppObj, queryIdx);
 
+		
+		AttributeGroup attributeGroup = con.getDataModel().getAttributeGroup(
+				ATG_QUERY_PID);
+		Aspect aspectResponse = con.getDataModel().getAspect(ASP_RESPONSE_PID);
+		try {
+			this.con.subscribeSender(this, queryAppObj,
+					new DataDescription(attributeGroup, aspectResponse),
+					SenderRole.sender());
+		} catch (OneSubscriptionPerSendData e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		MyArchiveQueryTask task;
 		try {
 			task = new MyArchiveQueryTask(entityManagerFactory, con, rd);

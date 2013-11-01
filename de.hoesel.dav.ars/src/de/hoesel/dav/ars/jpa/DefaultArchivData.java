@@ -80,10 +80,8 @@ public class DefaultArchivData implements Serializable,
 		try {
 			if (resultData.hasData()) {
 				serializer.writeData(resultData.getData());
-				setData(bos.toByteArray());
-			} else {
-				// TODO
-			}
+			} 
+			setData(bos.toByteArray());
 			bos.flush();
 		} catch (IOException ex) {
 			ex.printStackTrace();
