@@ -9,12 +9,12 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
-
-import com.sun.istack.logging.Logger;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.dav.daf.main.Data;
@@ -83,7 +83,8 @@ public class MyArchiveQueryTask implements Runnable {
 						// TODO:
 						serializer.writeInt(DataState.END_OF_ARCHIVE.getCode());
 						serializer.writeInt(serializerVersion);
-						serializer.writeByte(ArchiveDataCompression.NONE.getCode());
+						serializer.writeByte(ArchiveDataCompression.NONE
+								.getCode());
 						serializer.writeInt(0);
 					} else {
 						// TODO:
@@ -97,7 +98,8 @@ public class MyArchiveQueryTask implements Runnable {
 					}
 					System.out.println("Versende: "
 							+ Arrays.toString(bosResult.toByteArray()));
-					if(Arrays.toString(bosResult.toByteArray()).endsWith("-1]")){
+					if (Arrays.toString(bosResult.toByteArray())
+							.endsWith("-1]")) {
 						return null;
 					}
 					return bosResult.toByteArray();
@@ -132,8 +134,9 @@ public class MyArchiveQueryTask implements Runnable {
 				gResultData.setDataTime(System.currentTimeMillis());
 				con.sendData(gResultData);
 			} catch (Exception e) {
-				Logger.getLogger(getClass())
-						.severe("Daten-Versand an Empfaenger-Applikations-Objekt fehlgeschlagen",
+				Logger.getLogger(getClass().getName())
+						.log(Level.SEVERE,
+								"Daten-Versand an Empfaenger-Applikations-Objekt fehlgeschlagen",
 								e);
 			}
 		}
@@ -451,8 +454,9 @@ public class MyArchiveQueryTask implements Runnable {
 			gResultData.setDataTime(System.currentTimeMillis());
 			con.sendData(gResultData);
 		} catch (Exception e) {
-			Logger.getLogger(getClass())
-					.severe("Daten-Versand an Empfaenger-Applikations-Objekt fehlgeschlagen",
+			Logger.getLogger(getClass().getName())
+					.log(Level.SEVERE,
+							"Daten-Versand an Empfaenger-Applikations-Objekt fehlgeschlagen",
 							e);
 		}
 	}
