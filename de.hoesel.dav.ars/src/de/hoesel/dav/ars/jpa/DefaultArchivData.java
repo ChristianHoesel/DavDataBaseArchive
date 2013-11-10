@@ -35,6 +35,7 @@ import javax.persistence.TemporalType;
 
 import de.bsvrz.dav.daf.main.ClientDavConnection;
 import de.bsvrz.dav.daf.main.Data;
+import de.bsvrz.dav.daf.main.DataState;
 import de.bsvrz.dav.daf.main.ResultData;
 import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
 import de.bsvrz.sys.funclib.dataSerializer.Serializer;
@@ -50,7 +51,7 @@ import de.bsvrz.sys.funclib.dataSerializer.SerializingFactory;
 public class DefaultArchivData implements Serializable,
 		DatenverteilerArchivDatensatz {
 
-	private static final int BUFFER_SIZE = 4096;
+	private static final int BUFFER_SIZE = 16 * 1024;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
@@ -78,7 +79,8 @@ public class DefaultArchivData implements Serializable,
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(BUFFER_SIZE);
 		Serializer serializer = SerializingFactory.createSerializer(bos);
 		try {
-			if (resultData.hasData()) {
+			DataState type = resultData.getDataType();
+			if (resultData.hasData() && type == DataState.DATA) {
 				serializer.writeData(resultData.getData());
 			} 
 			setData(bos.toByteArray());

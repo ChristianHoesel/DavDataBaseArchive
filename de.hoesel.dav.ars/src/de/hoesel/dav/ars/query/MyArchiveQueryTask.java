@@ -70,6 +70,10 @@ public class MyArchiveQueryTask implements Runnable {
 
 					// Datenaufbereitung gemaess DatK 7.2.3.12
 					bosResult.reset();
+					
+					 Serializer serializer = SerializingFactory.createSerializer(serializerVersion,
+								bosResult);
+					
 					// TODO:
 					serializer.writeInt(ArchiveDataKind.ONLINE.getCode());
 					// Datenzeitstempel
@@ -79,9 +83,9 @@ public class MyArchiveQueryTask implements Runnable {
 					serializer.writeLong(datum.getTimestamp().getTime());
 					serializer.writeLong(datum.getDb_id());
 					byte[] data = datum.getData();
-					if (data == null) {
+					if (data == null|| data.length==0) {
 						// TODO:
-						serializer.writeInt(DataState.END_OF_ARCHIVE.getCode());
+						serializer.writeInt(DataState.NO_DATA.getCode());
 						serializer.writeInt(serializerVersion);
 						serializer.writeByte(ArchiveDataCompression.NONE
 								.getCode());
@@ -96,14 +100,16 @@ public class MyArchiveQueryTask implements Runnable {
 						serializer.writeInt(data.length);
 						serializer.writeBytes(data);
 					}
-					System.out.println("Versende: "
+					System.out.println("Versende (Index "+datum.getDb_id()+"): "
 							+ Arrays.toString(bosResult.toByteArray()));
-					if (Arrays.toString(bosResult.toByteArray())
-							.endsWith("-1]")) {
-						return null;
-					}
+//					if (Arrays.toString(bosResult.toByteArray())
+//							.endsWith("-1]")) {
+//						return null;
+//					}
 					return bosResult.toByteArray();
-
+				} catch (NoSuchVersionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -160,7 +166,7 @@ public class MyArchiveQueryTask implements Runnable {
 
 	private SystemObject queryAppObj;
 	private int queryIdx;
-	private Serializer serializer;
+//	private Serializer serializer;
 	private Deserializer deserializer;
 	private int serializerVersion;
 
@@ -208,8 +214,7 @@ public class MyArchiveQueryTask implements Runnable {
 		serializerVersion = getSerVersion(dataArray); // Erste 4 Bytes =
 														// Serialisierer-Version
 		bosResult.reset();
-		serializer = SerializingFactory.createSerializer(serializerVersion,
-				bosResult);
+	
 
 		InputStream stream = new ByteArrayInputStream(dataArray, 4,
 				dataArray.length - 4);
@@ -434,6 +439,9 @@ public class MyArchiveQueryTask implements Runnable {
 		bosResult.reset();
 
 		try {
+			 Serializer serializer = SerializingFactory.createSerializer(serializerVersion,
+						bosResult);
+			 
 			serializer.writeByte(success ? 1 : 0); // Anfrage erfolgreich
 													// ja/nein
 			serializer.writeString(errorMsg); // Fehlermeldung bei Misserfolg
