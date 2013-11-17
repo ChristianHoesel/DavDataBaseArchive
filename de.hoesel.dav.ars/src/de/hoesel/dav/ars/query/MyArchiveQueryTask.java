@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -62,10 +63,6 @@ public class MyArchiveQueryTask implements Runnable {
 						datum = (DefaultArchivData) iterator.next();
 					}
 
-					if (datum.getData() == null) {
-						// letzter Datensatz
-					}
-
 					// Datenaufbereitung gemaess DatK 7.2.3.12
 					bosResult.reset();
 
@@ -105,6 +102,34 @@ public class MyArchiveQueryTask implements Runnable {
 				} catch (NoSuchVersionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}else{
+				//alles versendet, jetzt is schluss
+				// Datenaufbereitung gemaess DatK 7.2.3.12
+				bosResult.reset();
+
+				try {
+					Serializer serializer = SerializingFactory
+							.createSerializer(serializerVersion, bosResult);
+					serializer.writeInt(ArchiveDataKind.ONLINE.getCode());
+					// Datenzeitstempel
+					serializer.writeLong(System.currentTimeMillis());
+					// Archivierungszeitstempel
+					// TODO:
+					serializer.writeLong(System.currentTimeMillis());
+					//TODO:Datenindex
+					serializer.writeLong(0);
+					serializer.writeInt(DataState.END_OF_ARCHIVE.getCode());
+					serializer.writeInt(serializerVersion);
+					serializer.writeByte(ArchiveDataCompression.NONE
+							.getCode());
+					serializer.writeInt(0);
+				} catch (NoSuchVersionException e) {
+					// TODO Auto-generated catch block
+//					e.printStackTrace();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -242,6 +267,7 @@ public class MyArchiveQueryTask implements Runnable {
 
 		try {
 			ArchiveDataSpecification[] archiveDataSpec = parseArchiveDataSpec();
+			//TODO: mehrere verschiedene parallele Abfragen beachten
 
 			ArchiveDataSpecification spec = archiveDataSpec[0];
 			SystemObject object = spec.getObject();
@@ -253,12 +279,16 @@ public class MyArchiveQueryTask implements Runnable {
 							+ "archivData.systemObject = :JPA_OBJECT"
 							+ " and archivData.asp = :ASPECT"
 							+ " and archivData.atg = :ATTRIBUTGROUP"
+							+ " and archivData.timestamp >= :START_TIME"
+							+ " and archivData.timestamp <= :END_TIME" 
 							+ " order by archivData.timestamp");
 			createQuery.setParameter("JPA_OBJECT", jpaObj);
 			createQuery.setParameter("ASPECT", spec.getDataDescription()
 					.getAspect());
 			createQuery.setParameter("ATTRIBUTGROUP", spec.getDataDescription()
 					.getAttributeGroup());
+			createQuery.setParameter("START_TIME", new Date(spec.getTimeSpec().getIntervalStart()));
+			createQuery.setParameter("END_TIME", new Date(spec.getTimeSpec().getIntervalEnd()));
 
 			List resultList = createQuery.getResultList();
 
