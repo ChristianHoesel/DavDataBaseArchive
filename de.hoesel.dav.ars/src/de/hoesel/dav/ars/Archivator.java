@@ -117,7 +117,8 @@ public class Archivator implements ClientReceiverInterface {
 							id.getObject(), id.getDataDescription(),
 							ReceiveOptions.delayed(), ReceiverRole.receiver());
 				} catch (Exception e) {
-					e.printStackTrace();
+					//TODO:
+//					e.printStackTrace();
 				}
 			}
 			neueAnmeldungen.clear();

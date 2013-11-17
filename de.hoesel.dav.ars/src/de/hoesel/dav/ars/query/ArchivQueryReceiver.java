@@ -202,7 +202,7 @@ public class ArchivQueryReceiver implements ClientReceiverInterface, ClientSende
 					SenderRole.sender());
 		} catch (OneSubscriptionPerSendData e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 		
 		
@@ -215,7 +215,7 @@ public class ArchivQueryReceiver implements ClientReceiverInterface, ClientSende
 			scheduler.execute(task);
 		} catch (NoSuchVersionException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 
 	}

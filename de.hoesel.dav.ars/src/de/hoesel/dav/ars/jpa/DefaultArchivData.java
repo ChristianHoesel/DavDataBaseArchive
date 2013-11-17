@@ -17,33 +17,35 @@
 
 package de.hoesel.dav.ars.jpa;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.naming.OperationNotSupportedException;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+
+import org.eclipse.persistence.annotations.Convert;
+import org.eclipse.persistence.annotations.Converter;
 
 import de.bsvrz.dav.daf.main.ClientDavConnection;
-import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.DataState;
 import de.bsvrz.dav.daf.main.ResultData;
-import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
+import de.bsvrz.dav.daf.main.config.Aspect;
+import de.bsvrz.dav.daf.main.config.AttributeGroup;
 import de.bsvrz.sys.funclib.dataSerializer.Serializer;
 import de.bsvrz.sys.funclib.dataSerializer.SerializingFactory;
 
 /**
  * Implementierung eines allgemeinen generischer Archivdatensatzes.
- *  
+ * 
  * @author christian
  * 
  */
@@ -54,13 +56,21 @@ public class DefaultArchivData implements Serializable,
 	private static final int BUFFER_SIZE = 16 * 1024;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long db_id;
 
 	private SystemObjectArchiv systemObject;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date timestamp;
+
+	@Converter(name = "aspectConverter", converterClass = de.hoesel.dav.ars.jpa.convert.AspectConverter.class)
+	@Convert("aspectConverter")
+	private Aspect asp;
+
+	@Converter(name = "attributGroupConverter", converterClass = de.hoesel.dav.ars.jpa.convert.AttributGroupConverter.class)
+	@Convert("attributGroupConverter")
+	private AttributeGroup atg;
 
 	@Lob
 	private byte[] data;
@@ -75,6 +85,8 @@ public class DefaultArchivData implements Serializable,
 				resultData.getObject());
 		setSystemObject(sysObjArchiv);
 		setTimestamp(new Date(resultData.getDataTime()));
+		setAsp(resultData.getDataDescription().getAspect());
+		setAtg(resultData.getDataDescription().getAttributeGroup());
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(BUFFER_SIZE);
 		Serializer serializer = SerializingFactory.createSerializer(bos);
@@ -82,7 +94,7 @@ public class DefaultArchivData implements Serializable,
 			DataState type = resultData.getDataType();
 			if (resultData.hasData() && type == DataState.DATA) {
 				serializer.writeData(resultData.getData());
-			} 
+			}
 			setData(bos.toByteArray());
 			bos.flush();
 		} catch (IOException ex) {
@@ -153,10 +165,9 @@ public class DefaultArchivData implements Serializable,
 
 	@Override
 	public ResultData convert2ResultData(final ClientDavConnection con) {
-		
-		
+
 		throw new IllegalStateException("Not implemented yet :(");
-//		return null;
+		// return null;
 	}
 
 	public Long getDb_id() {
@@ -167,5 +178,19 @@ public class DefaultArchivData implements Serializable,
 		this.db_id = db_id;
 	}
 
+	public Aspect getAsp() {
+		return asp;
+	}
 
+	public void setAsp(Aspect asp) {
+		this.asp = asp;
+	}
+
+	public AttributeGroup getAtg() {
+		return atg;
+	}
+
+	public void setAtg(AttributeGroup atg) {
+		this.atg = atg;
+	}
 }

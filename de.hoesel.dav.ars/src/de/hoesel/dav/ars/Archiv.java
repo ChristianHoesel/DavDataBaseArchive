@@ -37,12 +37,18 @@ import de.hoesel.dav.ars.query.ArchivQueryReceiver;
  * @author Christian
  * 
  */
-public class Archiv implements StandardApplication {
+public final class Archiv implements StandardApplication {
 
 	private String jdbcDriver;
 	private String jdbcUrl;
 	private String jdbcUser;
 	private String jdbcPassword;
+	
+	private static ClientDavInterface davConnection;
+	
+	public static ClientDavInterface getDavConnection(){
+		return davConnection;
+	}
 
 	/**
 	 * @param args
@@ -75,6 +81,8 @@ public class Archiv implements StandardApplication {
 	public void initialize(final ClientDavInterface connection)
 			throws Exception {
 
+		davConnection = connection;
+		
 		Map properties = new HashMap();
 		properties.put(PersistenceUnitProperties.JDBC_DRIVER, jdbcDriver);
 		properties.put(PersistenceUnitProperties.JDBC_URL, jdbcUrl);

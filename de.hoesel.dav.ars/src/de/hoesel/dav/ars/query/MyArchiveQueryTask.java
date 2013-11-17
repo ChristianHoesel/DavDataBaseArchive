@@ -5,8 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -70,10 +68,10 @@ public class MyArchiveQueryTask implements Runnable {
 
 					// Datenaufbereitung gemaess DatK 7.2.3.12
 					bosResult.reset();
-					
-					 Serializer serializer = SerializingFactory.createSerializer(serializerVersion,
-								bosResult);
-					
+
+					Serializer serializer = SerializingFactory
+							.createSerializer(serializerVersion, bosResult);
+
 					// TODO:
 					serializer.writeInt(ArchiveDataKind.ONLINE.getCode());
 					// Datenzeitstempel
@@ -83,7 +81,7 @@ public class MyArchiveQueryTask implements Runnable {
 					serializer.writeLong(datum.getTimestamp().getTime());
 					serializer.writeLong(datum.getDb_id());
 					byte[] data = datum.getData();
-					if (data == null|| data.length==0) {
+					if (data == null || data.length == 0) {
 						// TODO:
 						serializer.writeInt(DataState.NO_DATA.getCode());
 						serializer.writeInt(serializerVersion);
@@ -99,13 +97,10 @@ public class MyArchiveQueryTask implements Runnable {
 
 						serializer.writeInt(data.length);
 						serializer.writeBytes(data);
+
 					}
-					System.out.println("Versende (Index "+datum.getDb_id()+"): "
-							+ Arrays.toString(bosResult.toByteArray()));
-//					if (Arrays.toString(bosResult.toByteArray())
-//							.endsWith("-1]")) {
-//						return null;
-//					}
+					// System.out.println("Versende ( "+datum.getSystemObject().getPid()+":Index "+datum.getDb_id()+": "+SimpleDateFormat.getDateTimeInstance().format(datum.getTimestamp())+"): "
+					// + Arrays.toString(bosResult.toByteArray()));
 					return bosResult.toByteArray();
 				} catch (NoSuchVersionException e) {
 					// TODO Auto-generated catch block
@@ -166,7 +161,7 @@ public class MyArchiveQueryTask implements Runnable {
 
 	private SystemObject queryAppObj;
 	private int queryIdx;
-//	private Serializer serializer;
+	// private Serializer serializer;
 	private Deserializer deserializer;
 	private int serializerVersion;
 
@@ -214,7 +209,6 @@ public class MyArchiveQueryTask implements Runnable {
 		serializerVersion = getSerVersion(dataArray); // Erste 4 Bytes =
 														// Serialisierer-Version
 		bosResult.reset();
-	
 
 		InputStream stream = new ByteArrayInputStream(dataArray, 4,
 				dataArray.length - 4);
@@ -256,8 +250,15 @@ public class MyArchiveQueryTask implements Runnable {
 					object.getId());
 			Query createQuery = em
 					.createQuery("select archivData from DefaultArchivData as archivData where "
-							+ "archivData.systemObject = :JPA_OBJECT");
+							+ "archivData.systemObject = :JPA_OBJECT"
+							+ " and archivData.asp = :ASPECT"
+							+ " and archivData.atg = :ATTRIBUTGROUP"
+							+ " order by archivData.timestamp");
 			createQuery.setParameter("JPA_OBJECT", jpaObj);
+			createQuery.setParameter("ASPECT", spec.getDataDescription()
+					.getAspect());
+			createQuery.setParameter("ATTRIBUTGROUP", spec.getDataDescription()
+					.getAttributeGroup());
 
 			List resultList = createQuery.getResultList();
 
@@ -271,7 +272,7 @@ public class MyArchiveQueryTask implements Runnable {
 			mux.sendAllStreamData();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			// e1.printStackTrace();
 			sendInitialResponse(true, e1.getLocalizedMessage());
 		}
 	}
@@ -439,9 +440,9 @@ public class MyArchiveQueryTask implements Runnable {
 		bosResult.reset();
 
 		try {
-			 Serializer serializer = SerializingFactory.createSerializer(serializerVersion,
-						bosResult);
-			 
+			Serializer serializer = SerializingFactory.createSerializer(
+					serializerVersion, bosResult);
+
 			serializer.writeByte(success ? 1 : 0); // Anfrage erfolgreich
 													// ja/nein
 			serializer.writeString(errorMsg); // Fehlermeldung bei Misserfolg
