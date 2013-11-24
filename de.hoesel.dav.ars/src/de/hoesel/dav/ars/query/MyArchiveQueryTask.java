@@ -15,6 +15,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 
+import org.eclipse.persistence.queries.ScrollableCursor;
+
 import de.bsvrz.dav.daf.main.ClientDavInterface;
 import de.bsvrz.dav.daf.main.Data;
 import de.bsvrz.dav.daf.main.DataDescription;
@@ -37,6 +39,7 @@ import de.bsvrz.sys.funclib.dataSerializer.Deserializer;
 import de.bsvrz.sys.funclib.dataSerializer.NoSuchVersionException;
 import de.bsvrz.sys.funclib.dataSerializer.Serializer;
 import de.bsvrz.sys.funclib.dataSerializer.SerializingFactory;
+import de.bsvrz.sys.funclib.debug.Debug;
 import de.hoesel.dav.ars.jpa.DefaultArchivData;
 import de.hoesel.dav.ars.jpa.SystemObjectArchiv;
 
@@ -106,8 +109,8 @@ public class MyArchiveQueryTask implements Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}else{
-				//alles versendet, jetzt is schluss
+			} else {
+				// alles versendet, jetzt is schluss
 				// Datenaufbereitung gemaess DatK 7.2.3.12
 				bosResult.reset();
 
@@ -120,16 +123,15 @@ public class MyArchiveQueryTask implements Runnable {
 					// Archivierungszeitstempel
 					// TODO:
 					serializer.writeLong(System.currentTimeMillis());
-					//TODO:Datenindex
+					// TODO:Datenindex
 					serializer.writeLong(0);
 					serializer.writeInt(DataState.END_OF_ARCHIVE.getCode());
 					serializer.writeInt(serializerVersion);
-					serializer.writeByte(ArchiveDataCompression.NONE
-							.getCode());
+					serializer.writeByte(ArchiveDataCompression.NONE.getCode());
 					serializer.writeInt(0);
 				} catch (NoSuchVersionException e) {
 					// TODO Auto-generated catch block
-//					e.printStackTrace();
+					// e.printStackTrace();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -266,8 +268,9 @@ public class MyArchiveQueryTask implements Runnable {
 	public void run() {
 
 		try {
+			long start = System.currentTimeMillis();
 			ArchiveDataSpecification[] archiveDataSpec = parseArchiveDataSpec();
-			//TODO: mehrere verschiedene parallele Abfragen beachten
+			// TODO: mehrere verschiedene parallele Abfragen beachten
 
 			ArchiveDataSpecification spec = archiveDataSpec[0];
 			SystemObject object = spec.getObject();
@@ -280,23 +283,36 @@ public class MyArchiveQueryTask implements Runnable {
 							+ " and archivData.asp = :ASPECT"
 							+ " and archivData.atg = :ATTRIBUTGROUP"
 							+ " and archivData.timestamp >= :START_TIME"
-							+ " and archivData.timestamp <= :END_TIME" 
+							+ " and archivData.timestamp <= :END_TIME"
 							+ " order by archivData.timestamp");
+
 			createQuery.setParameter("JPA_OBJECT", jpaObj);
 			createQuery.setParameter("ASPECT", spec.getDataDescription()
 					.getAspect());
 			createQuery.setParameter("ATTRIBUTGROUP", spec.getDataDescription()
 					.getAttributeGroup());
-			createQuery.setParameter("START_TIME", new Date(spec.getTimeSpec().getIntervalStart()));
-			createQuery.setParameter("END_TIME", new Date(spec.getTimeSpec().getIntervalEnd()));
+			createQuery.setParameter("START_TIME", new Date(spec.getTimeSpec()
+					.getIntervalStart()));
+			createQuery.setParameter("END_TIME", new Date(spec.getTimeSpec()
+					.getIntervalEnd()));
 
-			List resultList = createQuery.getResultList();
+			// diverse Performance optimierung ->
+			// http://www.eclipse.org/eclipselink/documentation/2.5/solutions/performance001.htm#CHDJFFEJ
+			createQuery.setHint("eclipselink.cursor.scrollable", true);
+			createQuery.setHint("eclipselink.read-only", true);
+			createQuery.setHint("eclipselink.jdbc.fetch-size", 1000);
 
-			final Iterator iterator = resultList.iterator();
+			ScrollableCursor scrollableCursor = (ScrollableCursor) createQuery
+					.getSingleResult();
+
+			Debug.getLogger().info(
+					"Abfrage der Archivdaten dauerte ("
+							+ scrollableCursor.size() + "): "
+							+ (System.currentTimeMillis() - start) + "ms");
 
 			mux = new StreamMultiplexer(1, BLOCKING_FACTOR_MUX_DEFAULT,
 					BUFFER_SIZE_MUX_DEFAULT, serializerVersion,
-					new ArchivStreamMultiplexerDiretor(iterator));
+					new ArchivStreamMultiplexerDiretor(scrollableCursor));
 
 			sendInitialResponse(true, "");
 			mux.sendAllStreamData();
