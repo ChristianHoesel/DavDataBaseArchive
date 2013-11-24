@@ -57,7 +57,7 @@ public class MyArchiveQueryTask implements Runnable {
 
 		@Override
 		public byte[] take(int indexOfStream) {
-
+			//wir haben nur einen "Stream"
 			if (iterator.hasNext()) {
 				try {
 
@@ -101,6 +101,7 @@ public class MyArchiveQueryTask implements Runnable {
 						serializer.writeBytes(data);
 
 					}
+					// System.out.println(datum.getSystemObject().getPid());
 					// System.out.println("Versende ( "+datum.getSystemObject().getPid()+":Index "+datum.getDb_id()+": "+SimpleDateFormat.getDateTimeInstance().format(datum.getTimestamp())+"): "
 					// + Arrays.toString(bosResult.toByteArray()));
 					return bosResult.toByteArray();
@@ -274,30 +275,54 @@ public class MyArchiveQueryTask implements Runnable {
 			ArchiveDataSpecification[] archiveDataSpec = parseArchiveDataSpec();
 			// TODO: mehrere verschiedene parallele Abfragen beachten
 
-			ArchiveDataSpecification spec = archiveDataSpec[0];
-			SystemObject object = spec.getObject();
+			// ArchiveDataSpecification spec = archiveDataSpec[0];
+			// SystemObject object = spec.getObject();
 
-			SystemObjectArchiv jpaObj = em.find(SystemObjectArchiv.class,
-					object.getId());
-			Query createQuery = em
-					.createQuery("select archivData from DefaultArchivData as archivData where "
-							+ "archivData.systemObject = :JPA_OBJECT"
-							+ " and archivData.asp = :ASPECT"
-							+ " and archivData.atg = :ATTRIBUTGROUP"
-							+ " and archivData.timestamp >= :START_TIME"
-							+ " and archivData.timestamp <= :END_TIME"
-							+ " order by archivData.timestamp");
+			StringBuffer statement = new StringBuffer(
+					"select archivData from DefaultArchivData as archivData where ");
+			boolean firstSpec = true;
+			for (int i = 0; i < archiveDataSpec.length; i++) {
+				if (!firstSpec) {
+					statement.append(" or ");
+				}
+				firstSpec = false;
+				statement.append("(archivData.systemObject = :JPA_OBJECT" + i);
+				statement.append(" and archivData.asp = :ASPECT" + i);
+				statement.append(" and archivData.atg = :ATTRIBUTGROUP" + i);
+				statement
+						.append(" and archivData.timestamp >= :START_TIME" + i);
+				statement.append(" and archivData.timestamp <= :END_TIME" + i
+						+ ")");
+			}
+			statement.append(" order by archivData.timestamp");
 
-			createQuery.setParameter("JPA_OBJECT", jpaObj);
-			createQuery.setParameter("ASPECT", spec.getDataDescription()
-					.getAspect());
-			createQuery.setParameter("ATTRIBUTGROUP", spec.getDataDescription()
-					.getAttributeGroup());
-			createQuery.setParameter("START_TIME", new Date(spec.getTimeSpec()
-					.getIntervalStart()));
-			createQuery.setParameter("END_TIME", new Date(spec.getTimeSpec()
-					.getIntervalEnd()));
+			Debug.getLogger().info(statement.toString());
 
+			Query createQuery = em.createQuery(statement.toString());
+			// em
+			// .createQuery("select archivData from DefaultArchivData as archivData where "
+			// + "archivData.systemObject = :JPA_OBJECT"
+			// + " and archivData.asp = :ASPECT"
+			// + " and archivData.atg = :ATTRIBUTGROUP"
+			// + " and archivData.timestamp >= :START_TIME"
+			// + " and archivData.timestamp <= :END_TIME"
+			// + " order by archivData.timestamp");
+
+			for (int i = 0; i < archiveDataSpec.length; i++) {
+				ArchiveDataSpecification spec = archiveDataSpec[i];
+				SystemObjectArchiv jpaObj = em.find(SystemObjectArchiv.class,
+						spec.getObject().getId());
+				createQuery.setParameter("JPA_OBJECT" + i, jpaObj);
+				createQuery.setParameter("ASPECT" + i, spec
+						.getDataDescription().getAspect());
+				createQuery.setParameter("ATTRIBUTGROUP" + i, spec
+						.getDataDescription().getAttributeGroup());
+				createQuery.setParameter("START_TIME" + i, new Date(spec
+						.getTimeSpec().getIntervalStart()));
+				createQuery.setParameter("END_TIME" + i, new Date(spec
+						.getTimeSpec().getIntervalEnd()));
+
+			}
 			// diverse Performance optimierung ->
 			// http://www.eclipse.org/eclipselink/documentation/2.5/solutions/performance001.htm#CHDJFFEJ
 			createQuery.setHint(QueryHints.SCROLLABLE_CURSOR, HintValues.TRUE);
@@ -312,9 +337,12 @@ public class MyArchiveQueryTask implements Runnable {
 							+ scrollableCursor.size() + "): "
 							+ (System.currentTimeMillis() - start) + "ms");
 
-			mux = new StreamMultiplexer(1, BLOCKING_FACTOR_MUX_DEFAULT,
-					BUFFER_SIZE_MUX_DEFAULT, serializerVersion,
-					new ArchivStreamMultiplexerDiretor(scrollableCursor));
+			// hier müssen wir u.U. mehrere Streams vortäuschen, damit z.B. der
+			// GTM Abfragen über mehrere Objekte auswertet.
+			mux = new StreamMultiplexer(archiveDataSpec.length,
+					BLOCKING_FACTOR_MUX_DEFAULT, BUFFER_SIZE_MUX_DEFAULT,
+					serializerVersion, new ArchivStreamMultiplexerDiretor(
+							scrollableCursor));
 
 			sendInitialResponse(true, "");
 			mux.sendAllStreamData();
