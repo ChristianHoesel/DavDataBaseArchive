@@ -1,7 +1,6 @@
 DavDataBaseArchiv
 =================
 
-Proof-Of-Concept: Datenverteiler Archivierung in einer Datenbank mittels JPA.
+Proof-Of-Concept: Datenverteiler Archiv unter Verwendung der Java Persistence API (JPA).
 
-Weitere Informationen zur "Einheitlichen Rechnerzentralensoftware für Verkehrsrechnerzentralen" (kurz Datenverteiler) 
-unter http://www.nerz-ev.de
+Dieses Projekt ist nicht Teil des NERZ e.V. Die offizielle Software sowie weitere Informationen zur bundeseinheitlichen Software für Verkehrsrechnerzentralen (BSVRZ) finden Sie unter http://www.nerz-ev.de.
