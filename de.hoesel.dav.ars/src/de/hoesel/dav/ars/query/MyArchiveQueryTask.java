@@ -15,6 +15,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.queries.ScrollableCursor;
 
 import de.bsvrz.dav.daf.main.ClientDavInterface;
@@ -298,9 +300,9 @@ public class MyArchiveQueryTask implements Runnable {
 
 			// diverse Performance optimierung ->
 			// http://www.eclipse.org/eclipselink/documentation/2.5/solutions/performance001.htm#CHDJFFEJ
-			createQuery.setHint("eclipselink.cursor.scrollable", true);
-			createQuery.setHint("eclipselink.read-only", true);
-			createQuery.setHint("eclipselink.jdbc.fetch-size", 1000);
+			createQuery.setHint(QueryHints.SCROLLABLE_CURSOR, HintValues.TRUE);
+			createQuery.setHint(QueryHints.READ_ONLY, HintValues.TRUE);
+			createQuery.setHint(QueryHints.JDBC_FETCH_SIZE, 1000);
 
 			ScrollableCursor scrollableCursor = (ScrollableCursor) createQuery
 					.getSingleResult();
