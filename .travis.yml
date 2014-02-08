@@ -1,3 +1,2 @@
-cd ChristianHoesel/DavDataBaseArchive/de.hoesel.dav.ars
 language: java
-
+script: "mvn -f ./de.hoesel.dav.ars/pom.xml test"
