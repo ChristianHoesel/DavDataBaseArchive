@@ -1,4 +1,4 @@
-DavDataBaseArchiv
+DavDataBaseArchiv [![Build Status](https://travis-ci.org/ChristianHoesel/DavDataBaseArchive.png?branch=master)](https://travis-ci.org/ChristianHoesel/DavDataBaseArchive)
 =================
 
 Proof-Of-Concept: Datenverteiler Archiv unter Verwendung der Java Persistence API (JPA).
