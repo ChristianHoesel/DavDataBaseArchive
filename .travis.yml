@@ -1,2 +1,2 @@
 language: java
-script: mvn -f ./de.hoesel.dav.ars/pom.xml test
+script: "mvn -f ./de.hoesel.dav.ars/pom.xml test"
