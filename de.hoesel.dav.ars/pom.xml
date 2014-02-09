@@ -6,6 +6,10 @@
 	<version>0.0.4-SNAPSHOT</version>
 	<name>Datenverteiler Datenbank Archiv</name>
 
+  <properties>
+        <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+    </properties>
+
 	<repositories>
 		<repository>
 			<id>dav@muspellheim</id>
