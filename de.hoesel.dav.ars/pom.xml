@@ -13,7 +13,7 @@
 	<repositories>
 	 	<repository>
         		<id>github-falkoschumann</id>
-			<url>http://falkoschumann.github.io/maven-repository/snapshots/</url>
+			<url>http://falkoschumann.github.io/maven-repository/releases/</url>
 		</repository>
 	</repositories>
 	<build>
