@@ -11,9 +11,9 @@
     </properties>
 
 	<repositories>
-		<repository>
-			<id>dav@muspellheim</id>
-			<url>http://projekte.muspellheim.de/repository/</url>
+	 	<repository>
+        		<id>github-falkoschumann</id>
+			<url>http://falkoschumann.github.io/maven-repository/snapshots/</url>
 		</repository>
 	</repositories>
 	<build>
